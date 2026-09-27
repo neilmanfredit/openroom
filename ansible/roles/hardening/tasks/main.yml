@@ -1,0 +1,52 @@
+---
+- name: Install hardening packages
+  ansible.builtin.apt:
+    state: present
+    name:
+      - nftables
+      - openssh-server # ensure present even if not selected at install time
+
+- name: Deploy the nftables ruleset
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    owner: root
+    group: root
+    mode: "0640"
+  notify: Restart nftables
+
+- name: Enable nftables
+  ansible.builtin.systemd:
+    name: nftables.service
+    enabled: true
+    state: started
+
+- name: Create the sshd config drop-in directory
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy SSH hardening (key-only, no root login)
+  ansible.builtin.template:
+    src: 99-openroom-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/99-openroom-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart sshd
+
+- name: Block USB mass-storage devices
+  ansible.builtin.template:
+    src: openroom-blacklist-usb-storage.conf.j2
+    dest: /etc/modprobe.d/openroom-blacklist-usb-storage.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Remove orphaned packages
+  ansible.builtin.apt:
+    autoremove: true
+    autoclean: true

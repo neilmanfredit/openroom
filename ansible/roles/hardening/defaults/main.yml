@@ -1,0 +1,9 @@
+---
+# RFC 5737 TEST-NET placeholder — deliberately matches no real network, so
+# an operator who forgets to override this locks themselves out of SSH
+# rather than accidentally leaving it open. Set the real management
+# subnet in host_vars/<hostname>.yml before applying this role.
+hardening_ssh_allowed_subnet: "192.0.2.0/24"
+
+monitoring_node_exporter_enabled: true
+monitoring_node_exporter_port: 9100

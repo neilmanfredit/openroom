@@ -86,3 +86,14 @@ updates_watchdog_interval_seconds: 20
 screen_off_time: "19:00"
 screen_on_time: "07:00"
 screen_wake_before_minutes: 5
+
+# --- Hardening and monitoring (Milestone 6) ---
+# RFC 5737 TEST-NET placeholder — matches no real network. MUST be set to
+# the real management subnet in host_vars/<hostname>.yml before applying:
+# forgetting this locks out SSH entirely rather than leaving it open.
+# Confirm your SSH key already works BEFORE applying this role — it
+# disables password authentication.
+hardening_ssh_allowed_subnet: "192.0.2.0/24"
+
+monitoring_node_exporter_enabled: true
+monitoring_node_exporter_port: 9100

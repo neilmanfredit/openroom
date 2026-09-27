@@ -1,11 +1,16 @@
 ---
-# OpenRoom device build. Milestones 1-5 roles — hardening and monitoring
-# are added in later milestones.
+# OpenRoom device build — all roles through Milestone 6.
 #
 # control must run before browser: the browser role's managed policy
 # needs the Chromium extension ID the control role computes when it packs
-# the Leave & Home extension. updates runs last since it just adds
-# timers on top of everything else.
+# the Leave & Home extension. hardening runs near the end, once every
+# other service's ports are known, so its firewall rules are the final
+# word on what's exposed.
+#
+# IMPORTANT: hardening disables SSH password authentication and
+# restricts SSH to hardening_ssh_allowed_subnet — confirm your SSH key
+# already works and that subnet is set correctly for your network
+# BEFORE running this against a real device. See docs/OPERATIONS.md.
 - name: Build an OpenRoom kiosk device
   hosts: rooms
   become: true
@@ -16,3 +21,5 @@
     - browser
     - av
     - updates
+    - hardening
+    - monitoring

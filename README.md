@@ -26,7 +26,12 @@ Work proceeds milestone by milestone. Current state:
       end, screen on/off schedule with early wake for the next meeting. Counting/scheduling logic
       dry-run tested offline; screen control unverified against a real cage/Wayland session (see
       `docs/OPERATIONS.md`).
-- [ ] Milestone 6 — Hardening and monitoring
+- [x] Milestone 6 — Hardening and monitoring: `nftables` default-deny firewall (SSH/node-exporter
+      restricted to a configurable management subnet), SSH key-only/no-root-login, USB storage
+      blocked, `prometheus-node-exporter`, `/health` extended with camera/audio presence and
+      uptime. **Read `docs/OPERATIONS.md`'s warning before applying** — it changes SSH access and
+      can lock you out if misconfigured. Full-disk encryption/Secure Boot deliberately documented,
+      not automated.
 - [ ] Milestone 7 — Documentation
 
 ## Known limitations
@@ -39,7 +44,7 @@ budget-limited spaces, not boardrooms or large rooms.
 
 ## Repository layout
 
-As of Milestone 5:
+As of Milestone 6:
 
 ```
 openroom/
@@ -48,7 +53,7 @@ openroom/
 │   ├── site.yml
 │   ├── inventory.example.yml
 │   ├── group_vars/rooms.yml
-│   └── roles/{base,kiosk,control,browser,av,updates}/
+│   └── roles/{base,kiosk,control,browser,av,updates,hardening,monitoring}/
 ├── control/
 │   ├── app/            (FastAPI app: routes, state machine, CDP client, Graph calendar client,
 │   │                     resilience watcher)

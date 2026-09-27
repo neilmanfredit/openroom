@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Blocks USB mass-storage devices entirely — this appliance has no
+# legitimate use for one. Does not affect UVC cameras (uvcvideo), USB
+# audio (snd-usb-audio) or HID keyboards/keypads/remotes (usbhid), which
+# are separate kernel modules.
+blacklist usb_storage
+install usb_storage /bin/false

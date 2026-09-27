@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,6 +9,7 @@ from .calendar import calendar_cache
 from .cdp import ChromeController, get_chrome_controller
 from .config import settings
 from .state import MeetingState
+from .system_status import audio_present, camera_present
 
 logger = logging.getLogger("openroom.control")
 
@@ -17,6 +19,8 @@ router = APIRouter()
 # single module-level state object is simpler than threading shared state
 # through FastAPI's dependency system.
 meeting_state = MeetingState()
+
+_SERVICE_START_TIME = time.monotonic()
 
 TEAMS_ORIGINS = ("https://teams.microsoft.com", "https://teams.live.com")
 
@@ -84,4 +88,7 @@ async def health():
         "state": meeting_state.status,
         "calendar_offline": calendar_cache.offline,
         "calendar_last_success": calendar_cache.last_success,
+        "camera_present": camera_present(),
+        "audio_present": audio_present(),
+        "uptime_seconds": time.monotonic() - _SERVICE_START_TIME,
     }

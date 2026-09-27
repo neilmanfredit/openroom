@@ -1,10 +1,11 @@
 # Install
 
-This covers Milestones 1-5: building a Debian 13 (trixie) mini PC into a `cage` + Chromium kiosk
+This covers Milestones 1-6: building a Debian 13 (trixie) mini PC into a `cage` + Chromium kiosk
 with the room's camera and speakerphone pinned as defaults, running the home screen and control
-service driven by the room's real Microsoft 365 calendar, with a watchdog, nightly reboot,
-auto-return-to-home and a screen on/off schedule. Later milestones (hardening, monitoring) will
-extend this document.
+service driven by the room's real Microsoft 365 calendar, a watchdog/nightly-reboot/auto-return/
+screen-schedule resilience layer, and a locked-down firewall/SSH/USB-storage posture with basic
+monitoring. **Read `docs/OPERATIONS.md`'s hardening warning before step 3** — it changes SSH
+access. Milestone 7 (final documentation pass) will extend this further.
 
 ## 1. Install Debian 13 on the device
 
@@ -47,6 +48,11 @@ vaulted certificate/key in that `host_vars` file — see `docs/OPERATIONS.md`. W
 device still boots to a working home screen; it just shows no meetings (calendar polling stays
 disabled rather than failing).
 
+**Before running the playbook**, also set `hardening_ssh_allowed_subnet` to your real management
+subnet and confirm your SSH key already works — see the warning at the top of
+`docs/OPERATIONS.md`. The default value matches no real network on purpose, so leaving it unset
+locks out SSH rather than leaving it open.
+
 ## 3. Run the playbook
 
 ```sh
@@ -83,8 +89,12 @@ This is idempotent — running it again should report no changes.
   for exact timing) — check `journalctl -t openroom-watchdog`.
 - Confirm `openroom-screen-schedule.timer`, `openroom-nightly-reboot.timer` and
   `openroom-watchdog.timer` are all active: `systemctl list-timers 'openroom-*'`.
+- Run through the hardening verification checklist in `docs/OPERATIONS.md` (firewall, no shell
+  access, USB storage blocked, allowlist enforced).
+- `curl http://<device>:9100/metrics` from within the management subnet should return Prometheus
+  metrics; from outside it, or on any other port, it should get nothing back.
 
 ## What's not covered yet
 
-Firewall/hardening and monitoring arrive in later milestones and will be documented here as they
-land.
+Full-disk encryption and Secure Boot are deliberately not automated — see `docs/OPERATIONS.md`'s
+Hardening section for why, and set them up at OS-install time if you want them.

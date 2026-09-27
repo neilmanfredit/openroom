@@ -1,0 +1,32 @@
+# {{ ansible_managed }}
+# Default deny inbound; SSH (and, if enabled, node-exporter) allowed only
+# from the configured management subnet. Outbound is unrestricted —
+# Graph, Teams and Microsoft sign-in domains all need it, and there's no
+# fixed IP range to allow-list for those.
+flush ruleset
+
+table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+
+        iif "lo" accept
+        ct state established,related accept
+        ct state invalid drop
+
+        icmp type echo-request accept
+        icmpv6 type echo-request accept
+
+        tcp dport 22 ip saddr {{ hardening_ssh_allowed_subnet }} accept
+{% if monitoring_node_exporter_enabled %}
+        tcp dport {{ monitoring_node_exporter_port }} ip saddr {{ hardening_ssh_allowed_subnet }} accept
+{% endif %}
+    }
+
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+    }
+
+    chain output {
+        type filter hook output priority 0; policy accept;
+    }
+}

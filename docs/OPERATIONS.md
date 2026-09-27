@@ -1,5 +1,74 @@
 # Operations
 
+## ⚠ Before applying the hardening role
+
+`roles/hardening` disables SSH password authentication and restricts SSH to
+`hardening_ssh_allowed_subnet`. **Before running the playbook against a real device**:
+
+1. Confirm your SSH public key is already in the admin account's `~/.ssh/authorized_keys` and
+   that you can log in with it (not a password) right now.
+2. Set `hardening_ssh_allowed_subnet` in `ansible/host_vars/<hostname>.yml` to the real subnet
+   you'll be managing this device from — the default (`192.0.2.0/24`, an RFC 5737 TEST-NET range)
+   deliberately matches no real network, so forgetting to set it locks out SSH entirely rather
+   than leaving it open.
+
+An existing SSH session survives the nftables/sshd reload within the same `ansible-playbook` run
+(established connections are explicitly allowed), so you won't be cut off mid-run — but the
+*next* connection attempt, from anywhere outside that subnet or without a key, will fail. If you
+do lock yourself out, you'll need local/console access to the device to fix `/etc/nftables.conf`
+or `/etc/ssh/sshd_config.d/99-openroom-hardening.conf`.
+
+## Hardening
+
+- **Firewall**: `nftables`, default-deny inbound. Only loopback, established/related connections,
+  ICMP echo, and SSH (port 22, from `hardening_ssh_allowed_subnet` only) are allowed in. If
+  `monitoring_node_exporter_enabled` is true, its port (`monitoring_node_exporter_port`, default
+  9100) is allowed from the same subnet. Outbound is unrestricted — Graph, Teams and Microsoft
+  sign-in all need arbitrary outbound HTTPS, and there's no fixed IP range worth allow-listing for
+  those. IPv6 SSH is not explicitly allowed, so it's blocked by the default-deny policy; add a
+  rule yourself if your management network needs IPv6.
+- **SSH**: key-only (`PasswordAuthentication no`), no root login (`PermitRootLogin no`), via
+  `/etc/ssh/sshd_config.d/99-openroom-hardening.conf`.
+- **USB storage**: blocked entirely via `/etc/modprobe.d/openroom-blacklist-usb-storage.conf`
+  (blacklists the `usb_storage` kernel module). Doesn't affect the configured camera (`uvcvideo`),
+  audio (`snd-usb-audio`), or a USB keypad/remote (`usbhid`) — those are separate kernel modules.
+- **Full-disk encryption / Secure Boot**: deliberately **not automated** — both need decisions
+  made at OS install time (LUKS partitioning, TPM enrollment via `systemd-cryptenroll`, a Secure
+  Boot signing pipeline for the kernel) that can't be safely retrofitted onto an already-installed
+  system via Ansible. If you want these, set them up during the Debian install itself, before
+  running this playbook; see your organisation's disk-encryption/Secure Boot standard for the
+  specifics — this project doesn't prescribe one.
+- **Minimal package set**: the Debian minimal + SSH-server-only install profile from
+  `docs/INSTALL.md` is the baseline; the `hardening` role additionally runs `apt autoremove` to
+  clear orphaned dependencies. No project role adds packages beyond what each component needs.
+
+### Verifying the kiosk is actually locked down
+
+- From another machine, confirm `nmap`/`ssh` against any port other than 22 (and, if enabled,
+  9100) from within the management subnet gets nothing back, and that 22 itself is refused from
+  outside that subnet.
+- On the device, try to get to a shell from the kiosk screen (Ctrl+Alt+F2, Alt+Tab, right-click,
+  etc.) — none should work; `getty@tty1` is masked and cage has no window chrome.
+- Try navigating (via the URL bar — there isn't one in kiosk mode, so this really means: check the
+  managed policy) to any site outside `URLAllowlist`; Chromium should show its own "blocked by
+  administrator" page rather than the real site.
+- Plug in a USB flash drive; confirm no storage device appears (`lsblk` shouldn't show it) while
+  the configured camera/speakerphone/keypad continue working.
+
+## Monitoring
+
+- `/health` (`http://127.0.0.1:8080/health`) now returns `status`, `state` (home/in_meeting),
+  `calendar_offline`, `calendar_last_success` (epoch seconds, `null` if never succeeded),
+  `camera_present` (checks `/dev/openroom-camera` exists — the AV role's udev symlink, present
+  only when the configured camera is actually plugged in), `audio_present` (checks
+  `/proc/asound/cards` is non-empty — a presence signal, not a full diagnostic; use
+  `openroom-avtest` for that), and `uptime_seconds` (this service instance's own uptime, so a
+  recent watchdog-triggered restart is visible here).
+- `prometheus-node-exporter` runs when `monitoring_node_exporter_enabled` (default true), exposing
+  host-level metrics on `monitoring_node_exporter_port` (default 9100) — firewalled to
+  `hardening_ssh_allowed_subnet` same as SSH. There's no OpenRoom-specific Prometheus exporter for
+  `/health`'s own fields; scrape/poll `/health` directly if you want those in a dashboard.
+
 ## Control service
 
 `openroom-control.service` runs the FastAPI app from a pinned virtualenv at
