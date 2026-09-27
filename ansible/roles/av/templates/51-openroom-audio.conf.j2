@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+#
+# Pin the room speakerphone as the default ALSA source/sink by USB
+# vendor/product ID rather than card enumeration order, which is not
+# stable across reboots or hot-plug events. priority.session set here on
+# the ALSA device is inherited by the nodes WirePlumber spawns from it,
+# which is what its default-node selection logic uses.
+monitor.alsa.rules = [
+  {
+    matches = [
+      {
+        device.vendor.id = "0x{{ av_speakerphone_vendor_id }}"
+        device.product.id = "0x{{ av_speakerphone_product_id }}"
+      }
+    ]
+    actions = {
+      update-props = {
+        device.description   = "OpenRoom Speakerphone"
+        priority.session      = 2000
+      }
+    }
+  }
+]

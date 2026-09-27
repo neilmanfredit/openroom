@@ -1,0 +1,115 @@
+---
+- name: Install AV packages
+  ansible.builtin.apt:
+    state: present
+    name:
+      - pipewire
+      - pipewire-pulse # PulseAudio-compatible socket, needed for Chromium's audio backend
+      - pipewire-alsa
+      - pipewire-bin # pw-play / pw-record, used by openroom-avtest
+      - wireplumber
+      - v4l-utils # v4l2-ctl
+
+- name: Enable lingering for the kiosk user
+  # Keeps the kiosk user's systemd --user instance (and PipeWire/WirePlumber)
+  # running across a brief kiosk-service restart, rather than tearing down
+  # when its login session momentarily drops.
+  ansible.builtin.command: "loginctl enable-linger {{ kiosk_user }}"
+  args:
+    creates: "/var/lib/systemd/linger/{{ kiosk_user }}"
+
+- name: Create the WirePlumber drop-in directory
+  ansible.builtin.file:
+    path: /etc/wireplumber/wireplumber.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Pin the speakerphone as the default audio device
+  ansible.builtin.template:
+    src: 51-openroom-audio.conf.j2
+    dest: /etc/wireplumber/wireplumber.conf.d/51-openroom-audio.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart wireplumber
+
+- name: Create the PipeWire drop-in directory
+  ansible.builtin.file:
+    path: /etc/pipewire/pipewire.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: av_software_echo_cancel_enabled
+
+- name: Enable the software echo-cancel module
+  ansible.builtin.template:
+    src: 10-openroom-echo-cancel.conf.j2
+    dest: /etc/pipewire/pipewire.conf.d/10-openroom-echo-cancel.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: av_software_echo_cancel_enabled
+  notify:
+    - Restart pipewire
+    - Restart wireplumber
+
+- name: Remove the software echo-cancel module when disabled
+  ansible.builtin.file:
+    path: /etc/pipewire/pipewire.conf.d/10-openroom-echo-cancel.conf
+    state: absent
+  when: not av_software_echo_cancel_enabled
+  notify:
+    - Restart pipewire
+    - Restart wireplumber
+
+- name: Install the camera udev rule
+  ansible.builtin.template:
+    src: 70-openroom-camera.rules.j2
+    dest: /etc/udev/rules.d/70-openroom-camera.rules
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload udev rules
+    - Retrigger udev
+
+- name: Install the openroom-av systemd unit
+  ansible.builtin.template:
+    src: openroom-av.service.j2
+    dest: /etc/systemd/system/openroom-av.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable the openroom-av service
+  ansible.builtin.systemd:
+    name: openroom-av.service
+    enabled: true
+    daemon_reload: true
+
+- name: Create the OpenRoom shared assets directory
+  ansible.builtin.file:
+    path: /opt/openroom/share
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy the openroom-avtest tone asset
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../scripts/openroom-avtest-tone.wav"
+    dest: /opt/openroom/share/avtest-tone.wav
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy the openroom-avtest command
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../scripts/openroom-avtest"
+    dest: /usr/local/bin/openroom-avtest
+    owner: root
+    group: root
+    mode: "0755"

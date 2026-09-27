@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+# OpenRoom AV smoke test: plays a test tone, records five seconds,
+# plays the recording back, and captures a still frame from the room
+# camera. Confirms the pipeline runs end-to-end; a human still needs to
+# listen to the playback and look at the still frame to judge quality.
+set -euo pipefail
+
+TONE_FILE="${OPENROOM_AVTEST_TONE:-/opt/openroom/share/avtest-tone.wav}"
+CAMERA_DEV="${OPENROOM_AVTEST_CAMERA:-/dev/openroom-camera}"
+WORKDIR="$(mktemp -d /tmp/openroom-avtest.XXXXXX)"
+RECORDING="$WORKDIR/recording.wav"
+FRAME="$WORKDIR/frame.jpg"
+RECORD_SECONDS=5
+MIN_WAV_BYTES=1000
+MIN_FRAME_BYTES=1000
+
+overall_pass=1
+
+pass() {
+    printf 'PASS  %s\n' "$1"
+}
+
+fail() {
+    printf 'FAIL  %s: %s\n' "$1" "$2"
+    overall_pass=0
+}
+
+step_play_tone() {
+    if [[ ! -f "$TONE_FILE" ]]; then
+        fail "Speaker (test tone)" "tone file not found at $TONE_FILE"
+        return
+    fi
+    if pw-play "$TONE_FILE" >/dev/null 2>&1; then
+        pass "Speaker (test tone played)"
+    else
+        fail "Speaker (test tone)" "pw-play exited non-zero"
+    fi
+}
+
+step_record() {
+    # pw-record only stops (and finalises the WAV header) on SIGINT, so
+    # ask timeout to send that rather than its default SIGTERM.
+    if timeout --signal=INT "$RECORD_SECONDS" pw-record "$RECORDING" >/dev/null 2>&1; then
+        :
+    fi
+    if [[ -f "$RECORDING" ]] && [[ "$(stat -c%s "$RECORDING" 2>/dev/null || echo 0)" -ge "$MIN_WAV_BYTES" ]]; then
+        pass "Microphone (recorded ${RECORD_SECONDS}s to $RECORDING)"
+    else
+        fail "Microphone" "recording missing or too small"
+    fi
+}
+
+step_playback() {
+    if [[ ! -f "$RECORDING" ]]; then
+        fail "Playback of recording" "no recording to play back"
+        return
+    fi
+    if pw-play "$RECORDING" >/dev/null 2>&1; then
+        pass "Playback of recording"
+    else
+        fail "Playback of recording" "pw-play exited non-zero"
+    fi
+}
+
+step_camera() {
+    if [[ ! -e "$CAMERA_DEV" ]]; then
+        fail "Camera" "device not found at $CAMERA_DEV"
+        return
+    fi
+    # Assumes openroom-av.service has already set the capture format to
+    # MJPG (see ansible/roles/av); this just grabs one frame as-is.
+    if v4l2-ctl --device="$CAMERA_DEV" \
+        --stream-mmap --stream-count=1 --stream-to="$FRAME" >/dev/null 2>&1; then
+        :
+    fi
+    if [[ -f "$FRAME" ]] && [[ "$(stat -c%s "$FRAME" 2>/dev/null || echo 0)" -ge "$MIN_FRAME_BYTES" ]]; then
+        pass "Camera (still frame captured to $FRAME)"
+    else
+        fail "Camera" "still frame missing or too small"
+    fi
+}
+
+echo "OpenRoom AV test"
+echo "================"
+step_play_tone
+step_record
+step_playback
+step_camera
+echo "================"
+
+if [[ "$overall_pass" -eq 1 ]]; then
+    echo "Overall: PASS"
+    echo "Listen to $RECORDING and view $FRAME to confirm quality by ear/eye."
+    exit 0
+else
+    echo "Overall: FAIL"
+    exit 1
+fi

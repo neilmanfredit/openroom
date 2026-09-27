@@ -1,0 +1,20 @@
+{{ ansible_managed | comment }}
+# Applies fixed capture settings to the room camera. Triggered by the
+# udev rule (70-openroom-camera.rules) on both boot coldplug and
+# hot-plug, so it never depends on the camera being present at boot
+# time in a particular order.
+[Unit]
+Description=OpenRoom camera configuration (v4l2-ctl)
+After=dev-openroom\x2dcamera.device
+Requisite=dev-openroom\x2dcamera.device
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/v4l2-ctl --device=/dev/openroom-camera --set-fmt-video=width={{ av_camera_format.width }},height={{ av_camera_format.height }},pixelformat={{ av_camera_format.pixelformat }}
+{% for ctrl in av_camera_v4l2_controls %}
+ExecStart=/usr/bin/v4l2-ctl --device=/dev/openroom-camera --set-ctrl={{ ctrl }}
+{% endfor %}
+
+[Install]
+WantedBy=multi-user.target

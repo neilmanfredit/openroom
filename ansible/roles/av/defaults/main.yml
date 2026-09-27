@@ -1,0 +1,14 @@
+---
+kiosk_user: kiosk
+kiosk_group: kiosk
+
+av_speakerphone_vendor_id: "0000"
+av_speakerphone_product_id: "0000"
+av_camera_vendor_id: "0000"
+av_camera_product_id: "0000"
+av_software_echo_cancel_enabled: false
+av_camera_format:
+  width: 1280
+  height: 720
+  pixelformat: MJPG
+av_camera_v4l2_controls: []

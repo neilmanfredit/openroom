@@ -1,0 +1,24 @@
+---
+- name: Restart pipewire
+  ansible.builtin.systemd:
+    name: pipewire.service
+    scope: user
+    state: restarted
+  become: true
+  become_user: "{{ kiosk_user }}"
+
+- name: Restart wireplumber
+  ansible.builtin.systemd:
+    name: wireplumber.service
+    scope: user
+    state: restarted
+  become: true
+  become_user: "{{ kiosk_user }}"
+
+- name: Reload udev rules
+  ansible.builtin.command: udevadm control --reload-rules
+  changed_when: true
+
+- name: Retrigger udev
+  ansible.builtin.command: udevadm trigger --subsystem-match=video4linux --action=add
+  changed_when: true

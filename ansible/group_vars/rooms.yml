@@ -21,3 +21,32 @@ kiosk_start_url: "file://{{ openroom_static_dir }}/placeholder.html"
 # Extra Chromium command-line flags, appended after the fixed kiosk set
 # in roles/kiosk/templates/openroom-kiosk.service.j2.
 chromium_extra_flags: []
+
+# --- AV (Milestone 2) ---
+# Identify the room's speakerphone and camera by USB vendor/product ID
+# (from `lsusb`, e.g. "046d") rather than relying on enumeration order,
+# which changes across reboots and hot-plug events. These placeholders
+# must be overridden per-room in host_vars/<hostname>.yml — see
+# docs/HARDWARE.md.
+av_speakerphone_vendor_id: "0000"
+av_speakerphone_product_id: "0000"
+av_camera_vendor_id: "0000"
+av_camera_product_id: "0000"
+
+# Only set true for a speakerphone/microphone with no hardware echo
+# cancellation. Enabling this on top of a device that already does AEC
+# in hardware causes double-cancellation artefacts.
+av_software_echo_cancel_enabled: false
+
+# Camera capture format locked by openroom-av.service.
+av_camera_format:
+  width: 1280
+  height: 720
+  pixelformat: MJPG
+
+# Extra v4l2-ctl controls applied to the camera, as raw "control=value"
+# strings (e.g. "focus_automatic_continuous=0"). Left empty by default —
+# UVC control names vary by camera model; run
+# `v4l2-ctl --device=/dev/openroom-camera --list-ctrls` on the real
+# device and fill these in (see docs/HARDWARE.md).
+av_camera_v4l2_controls: []

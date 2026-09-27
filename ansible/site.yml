@@ -1,6 +1,6 @@
 ---
-# OpenRoom device build. Milestone 1 (bare kiosk) roles only — av, control,
-# hardening, updates and monitoring are added in later milestones.
+# OpenRoom device build. Milestones 1-2 roles only — control, hardening,
+# updates and monitoring are added in later milestones.
 - name: Build an OpenRoom kiosk device
   hosts: rooms
   become: true
@@ -8,3 +8,4 @@
     - base
     - kiosk
     - browser
+    - av

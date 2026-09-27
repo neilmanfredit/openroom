@@ -13,7 +13,9 @@ Work proceeds milestone by milestone (see `CLAUDE.md`). Current state:
 
 - [x] Milestone 1 — Bare kiosk: Ansible builds Debian into a `cage` + Chromium kiosk showing a
       static placeholder page.
-- [ ] Milestone 2 — AV
+- [x] Milestone 2 — AV: camera and speakerphone pinned as PipeWire/WirePlumber defaults by USB
+      vendor/product ID, `openroom-avtest` diagnostic command. Not yet verified on real hardware
+      (see `docs/HARDWARE.md`).
 - [ ] Milestone 3 — Control service
 - [ ] Milestone 4 — Calendar
 - [ ] Milestone 5 — Resilience
@@ -30,7 +32,7 @@ budget-limited spaces, not boardrooms or large rooms.
 
 ## Repository layout
 
-See `CLAUDE.md` for the full target layout. As of Milestone 1:
+See `CLAUDE.md` for the full target layout. As of Milestone 2:
 
 ```
 openroom/
@@ -40,9 +42,13 @@ openroom/
 │   ├── site.yml
 │   ├── inventory.example.yml
 │   ├── group_vars/rooms.yml
-│   └── roles/{base,kiosk,browser}/
+│   └── roles/{base,kiosk,browser,av}/
 ├── control/
 │   └── static/placeholder.html
+├── scripts/
+│   ├── openroom-avtest
+│   └── openroom-avtest-tone.wav
 └── docs/
-    └── INSTALL.md
+    ├── INSTALL.md
+    └── HARDWARE.md
 ```

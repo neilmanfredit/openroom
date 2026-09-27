@@ -1,0 +1,19 @@
+# {{ ansible_managed }}
+#
+# Only deployed when av_software_echo_cancel_enabled is true, for a
+# speakerphone/microphone with no hardware AEC. Verify aec.method and
+# the resulting virtual device names against the real hardware — this
+# has not been tested on real hardware in this build.
+context.modules = [
+  {   name = libpipewire-module-echo-cancel
+      args = {
+          aec.method   = webrtc
+          source.props = {
+              node.name = "openroom.echo-cancel.source"
+          }
+          sink.props = {
+              node.name = "openroom.echo-cancel.sink"
+          }
+      }
+  }
+]
