@@ -1,0 +1,9 @@
+---
+kiosk_user: kiosk
+
+updates_nightly_reboot_time: "03:00"
+updates_watchdog_interval_seconds: 20
+
+screen_off_time: "19:00"
+screen_on_time: "07:00"
+screen_wake_before_minutes: 5

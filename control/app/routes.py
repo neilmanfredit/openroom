@@ -47,7 +47,7 @@ async def join_meeting(
         raise HTTPException(status_code=400, detail="meeting has no Teams join link")
     logger.info("joining meeting id=%s", meeting_id)
     await chrome.navigate(meeting.join_url)
-    meeting_state.join(meeting.join_url)
+    meeting_state.join(meeting.join_url, meeting.id)
     return {"status": meeting_state.status}
 
 

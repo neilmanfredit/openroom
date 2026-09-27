@@ -1,0 +1,19 @@
+{{ ansible_managed | comment }}
+# Runs as the kiosk user so wlr-randr can reach cage's own Wayland
+# output — %U/%h resolve to the kiosk user's UID/home once User= is set.
+# Unverified: assumes cage's default Wayland socket name (wayland-1); check
+# this against the real device (see docs/OPERATIONS.md).
+[Unit]
+Description=OpenRoom screen on/off schedule
+After=openroom-kiosk.service
+Requires=openroom-kiosk.service
+
+[Service]
+Type=oneshot
+User={{ kiosk_user }}
+Environment=XDG_RUNTIME_DIR=/run/user/%U
+Environment=WAYLAND_DISPLAY=wayland-1
+Environment=OPENROOM_SCREEN_OFF_TIME={{ screen_off_time }}
+Environment=OPENROOM_SCREEN_ON_TIME={{ screen_on_time }}
+Environment=OPENROOM_SCREEN_WAKE_BEFORE_MINUTES={{ screen_wake_before_minutes }}
+ExecStart=/usr/local/bin/openroom-screen-schedule

@@ -1,0 +1,7 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=OpenRoom nightly reboot (skipped if a meeting is in progress)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/openroom-nightly-reboot

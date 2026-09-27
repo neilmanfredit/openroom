@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .calendar import calendar_poller
 from .extension import router as extension_router
+from .resilience import resilience_watcher
 from .routes import router as api_router
 
 # journald captures a systemd service's stdout/stderr directly, so plain
@@ -21,9 +22,11 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     calendar_poller.start()
+    resilience_watcher.start()
     try:
         yield
     finally:
+        await resilience_watcher.stop()
         await calendar_poller.stop()
 
 

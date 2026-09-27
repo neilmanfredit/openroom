@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Nightly reboot, skipped if a meeting is in progress (per spec). Run by
+# openroom-nightly-reboot.timer at a configurable time.
+set -euo pipefail
+
+state=$(curl -fsS --max-time 5 http://127.0.0.1:8080/health 2>/dev/null | jq -r '.state // "unknown"' 2>/dev/null || echo "unknown")
+
+if [ "$state" = "in_meeting" ]; then
+    logger -t openroom-nightly-reboot "meeting in progress; skipping tonight's reboot"
+    exit 0
+fi
+
+logger -t openroom-nightly-reboot "no meeting in progress; rebooting"
+systemctl reboot

@@ -1,0 +1,74 @@
+---
+- name: Install packages for updates and resilience
+  ansible.builtin.apt:
+    state: present
+    name:
+      - unattended-upgrades
+      - jq # used by the watchdog/nightly-reboot/screen-schedule scripts to parse /health, /api/today
+      - wlr-randr # screen on/off control against cage's Wayland output
+
+- name: Configure unattended-upgrades to security updates only
+  ansible.builtin.template:
+    src: 51openroom-unattended-upgrades.j2
+    dest: /etc/apt/apt.conf.d/51openroom-unattended-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable periodic unattended upgrades
+  ansible.builtin.template:
+    src: 20auto-upgrades.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable the Debian-provided unattended-upgrades timers
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - apt-daily.timer
+    - apt-daily-upgrade.timer
+
+- name: Deploy the watchdog, nightly-reboot and screen-schedule scripts
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../scripts/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - openroom-watchdog-check
+    - openroom-nightly-reboot
+    - openroom-screen-schedule
+
+- name: Install the watchdog, nightly-reboot and screen-schedule systemd units
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - openroom-watchdog.service
+    - openroom-watchdog.timer
+    - openroom-nightly-reboot.service
+    - openroom-nightly-reboot.timer
+    - openroom-screen-schedule.service
+    - openroom-screen-schedule.timer
+  notify: Reload systemd
+
+- name: Flush handlers before enabling the new timers
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable the OpenRoom resilience timers
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - openroom-watchdog.timer
+    - openroom-nightly-reboot.timer
+    - openroom-screen-schedule.timer

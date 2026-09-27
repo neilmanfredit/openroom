@@ -1,0 +1,11 @@
+// {{ ansible_managed }}
+// Security updates only — restrictive by design for an appliance.
+Unattended-Upgrade::Origins-Pattern {
+    "origin=Debian,codename=${distro_codename}-security";
+};
+
+// The nightly reboot (openroom-nightly-reboot.timer) already handles
+// applying-updates-then-rebooting, skipped while a meeting is in
+// progress — let that own the reboot decision rather than having two
+// independent reboot triggers race each other.
+Unattended-Upgrade::Automatic-Reboot "false";

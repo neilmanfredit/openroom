@@ -1,0 +1,12 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=Run the OpenRoom nightly reboot check
+
+[Timer]
+OnCalendar=*-*-* {{ updates_nightly_reboot_time }}:00
+# Explicitly not persistent: a missed run (device was off) should not
+# trigger an immediate catch-up reboot right after boot.
+Persistent=false
+
+[Install]
+WantedBy=timers.target

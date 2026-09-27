@@ -5,19 +5,23 @@ from typing import Optional
 
 @dataclass
 class MeetingState:
-    """Home vs. in-meeting only for Milestone 3 — no calendar yet, and
-    auto-detecting a meeting ending is Milestone 5 (Resilience)."""
+    """Home vs. in-meeting. current_meeting_id lets the resilience
+    watcher (Milestone 5) look the joined meeting back up in the
+    calendar cache to check its scheduled end time."""
 
     status: str = "home"
     current_join_url: Optional[str] = None
+    current_meeting_id: Optional[str] = None
     since: float = field(default_factory=time.monotonic)
 
-    def join(self, join_url: str) -> None:
+    def join(self, join_url: str, meeting_id: Optional[str] = None) -> None:
         self.status = "in_meeting"
         self.current_join_url = join_url
+        self.current_meeting_id = meeting_id
         self.since = time.monotonic()
 
     def leave(self) -> None:
         self.status = "home"
         self.current_join_url = None
+        self.current_meeting_id = None
         self.since = time.monotonic()

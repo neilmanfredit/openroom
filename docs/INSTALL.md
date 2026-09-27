@@ -1,9 +1,10 @@
 # Install
 
-This covers Milestones 1-4: building a Debian 13 (trixie) mini PC into a `cage` + Chromium kiosk
+This covers Milestones 1-5: building a Debian 13 (trixie) mini PC into a `cage` + Chromium kiosk
 with the room's camera and speakerphone pinned as defaults, running the home screen and control
-service driven by the room's real Microsoft 365 calendar. Later milestones (hardening,
-monitoring) will extend this document.
+service driven by the room's real Microsoft 365 calendar, with a watchdog, nightly reboot,
+auto-return-to-home and a screen on/off schedule. Later milestones (hardening, monitoring) will
+extend this document.
 
 ## 1. Install Debian 13 on the device
 
@@ -74,8 +75,16 @@ This is idempotent — running it again should report no changes.
 - Confirm the "offline" banner appears if you temporarily block the device's access to
   `graph.microsoft.com` (e.g. in `/etc/hosts` or a firewall rule), and that the last-known
   meetings keep showing rather than disappearing.
+- During a joined meeting, use Teams' own leave/hang-up control (not the injected "Leave & Home"
+  button) and confirm the device auto-returns to the home screen within
+  `resilience_poll_interval_seconds`.
+- Stop `openroom-control.service` (`sudo systemctl stop openroom-control.service`) and confirm
+  `openroom-watchdog.timer` restarts the kiosk within about a minute (see `docs/OPERATIONS.md`
+  for exact timing) — check `journalctl -t openroom-watchdog`.
+- Confirm `openroom-screen-schedule.timer`, `openroom-nightly-reboot.timer` and
+  `openroom-watchdog.timer` are all active: `systemctl list-timers 'openroom-*'`.
 
 ## What's not covered yet
 
-Firewall/hardening, automatic updates and monitoring all arrive in later milestones and will be
-documented here as they land.
+Firewall/hardening and monitoring arrive in later milestones and will be documented here as they
+land.

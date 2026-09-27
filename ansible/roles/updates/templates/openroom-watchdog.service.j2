@@ -1,0 +1,7 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=OpenRoom watchdog check
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/openroom-watchdog-check

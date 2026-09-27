@@ -1,0 +1,11 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=Run the OpenRoom watchdog check periodically
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec={{ updates_watchdog_interval_seconds }}s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

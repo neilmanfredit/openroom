@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Turns the kiosk display on/off on a configurable out-of-hours schedule,
+# waking early for the next booked meeting, and never turning off while a
+# meeting is in progress. Run every minute via
+# openroom-screen-schedule.timer, as the kiosk user (needs the cage
+# Wayland session's output).
+set -euo pipefail
+
+OFF_TIME="${OPENROOM_SCREEN_OFF_TIME:-19:00}"
+ON_TIME="${OPENROOM_SCREEN_ON_TIME:-07:00}"
+WAKE_BEFORE_MINUTES="${OPENROOM_SCREEN_WAKE_BEFORE_MINUTES:-5}"
+
+to_minutes() {
+    local h="${1%%:*}" m="${1##*:}"
+    echo $((10#$h * 60 + 10#$m))
+}
+
+output_name() {
+    wlr-randr 2>/dev/null | awk 'NR==1{print $1}'
+}
+
+screen_on() {
+    local output
+    output=$(output_name) || return 0
+    [ -n "$output" ] && wlr-randr --output "$output" --on
+}
+
+screen_off() {
+    local output
+    output=$(output_name) || return 0
+    [ -n "$output" ] && wlr-randr --output "$output" --off
+}
+
+now_minutes=$(to_minutes "$(date +%H:%M)")
+off_minutes=$(to_minutes "$OFF_TIME")
+on_minutes=$(to_minutes "$ON_TIME")
+
+out_of_hours=0
+if [ "$off_minutes" -lt "$on_minutes" ]; then
+    if [ "$now_minutes" -ge "$off_minutes" ] && [ "$now_minutes" -lt "$on_minutes" ]; then
+        out_of_hours=1
+    fi
+else
+    # Overnight window, e.g. off=19:00, on=07:00.
+    if [ "$now_minutes" -ge "$off_minutes" ] || [ "$now_minutes" -lt "$on_minutes" ]; then
+        out_of_hours=1
+    fi
+fi
+
+if [ "$out_of_hours" -eq 0 ]; then
+    screen_on
+    exit 0
+fi
+
+state=$(curl -fsS --max-time 5 http://127.0.0.1:8080/health 2>/dev/null | jq -r '.state // "unknown"' 2>/dev/null || echo "unknown")
+if [ "$state" = "in_meeting" ]; then
+    screen_on
+    exit 0
+fi
+
+now_epoch=$(date +%s)
+next_start_epoch=""
+while read -r start_iso; do
+    [ -z "$start_iso" ] && continue
+    start_epoch=$(date -d "$start_iso" +%s 2>/dev/null) || continue
+    if [ "$start_epoch" -ge "$now_epoch" ]; then
+        if [ -z "$next_start_epoch" ] || [ "$start_epoch" -lt "$next_start_epoch" ]; then
+            next_start_epoch="$start_epoch"
+        fi
+    fi
+done < <(curl -fsS --max-time 5 http://127.0.0.1:8080/api/today 2>/dev/null | jq -r '.meetings[].start' 2>/dev/null || true)
+
+if [ -n "$next_start_epoch" ]; then
+    minutes_until=$(((next_start_epoch - now_epoch) / 60))
+    if [ "$minutes_until" -le "$WAKE_BEFORE_MINUTES" ]; then
+        screen_on
+        exit 0
+    fi
+fi
+
+screen_off

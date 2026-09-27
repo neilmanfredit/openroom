@@ -71,3 +71,18 @@ show_meeting_subject: true
 
 calendar_poll_interval_seconds: 60
 calendar_timezone: "Europe/London"
+
+# --- Resilience (Milestone 5) ---
+# Nightly reboot, skipped automatically if a meeting is in progress.
+updates_nightly_reboot_time: "03:00"
+
+# How often the watchdog checks /health and Chromium's DevTools port;
+# ~3 consecutive failures (so ~60s of sustained trouble) restarts the
+# kiosk, and 3 such restarts within 10 minutes reboots instead.
+updates_watchdog_interval_seconds: 20
+
+# Screen off outside these hours, waking early for the next booked
+# meeting and staying on for the duration of any meeting in progress.
+screen_off_time: "19:00"
+screen_on_time: "07:00"
+screen_wake_before_minutes: 5

@@ -39,5 +39,15 @@ class Settings(BaseSettings):
     calendar_timezone: str = "Europe/London"
     calendar_cache_path: str = "/opt/openroom/state/calendar-cache.json"
 
+    # --- Resilience (Milestone 5) ---
+    # How often the auto-return-to-home watcher checks the active tab.
+    resilience_poll_interval_seconds: int = 10
+
+    # Grace period after a meeting's scheduled end before auto-returning
+    # home, used only as a time-based fallback (see
+    # ResilienceWatcher in resilience.py for why this is unconditional
+    # rather than checking whether anyone's still in the call).
+    meeting_ended_grace_minutes: int = 5
+
 
 settings = Settings()

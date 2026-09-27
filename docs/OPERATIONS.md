@@ -92,7 +92,60 @@ against a real Chromium/Debian install in this environment:
   acceptance criteria explicitly call for verifying and documenting that the app cannot read a
   non-room mailbox. Do that test and record the result before relying on it.
 
-## Manual Teams call test (Milestone 2, still applicable)
+## Resilience (Milestone 5)
 
-See `docs/HARDWARE.md` — the manual-Chromium-session procedure there is superseded by the control
-service's own Join button now that `control_demo_join_url` is set to a real meeting link.
+### Auto-return to home
+
+A background watcher (`control/app/resilience.py`) checks every `resilience_poll_interval_seconds`
+(default 10s) while a meeting is joined, and returns to the home screen (clearing session storage
+first, same as the manual Leave & Home button) when either:
+
+- the active tab's URL no longer looks like it's on `teams.microsoft.com`/`teams.live.com` —
+  covers the case where someone uses Teams' own hang-up/leave control; or
+- the meeting's scheduled end time (from the calendar) plus `meeting_ended_grace_minutes`
+  (default 5) has passed.
+
+The time-based path is **unconditional** — it does not check whether the room is actually still
+in use, since that would need Teams-specific participant/DOM signals this project has no live
+tenant to verify. An overrunning meeting will be returned home after the grace period even if
+people are still in it; increase `meeting_ended_grace_minutes` per room if that's a problem.
+
+### Watchdog
+
+`openroom-watchdog.timer` runs `openroom-watchdog-check` every `updates_watchdog_interval_seconds`
+(default 20s). It checks `http://127.0.0.1:8080/health` and Chromium's DevTools endpoint
+(`http://127.0.0.1:9222/json/version`); after ~3 consecutive failures (~60s of sustained trouble,
+not a single blip) it restarts `openroom-kiosk.service`, and after 3 such restarts within a
+10-minute window it reboots instead. State is kept in `/run/openroom/` (tmpfs, resets on reboot).
+This counting logic was dry-run tested offline with faked `curl`/`systemctl` before being wired
+into Ansible — see the script's git history for the test transcript if you want to re-verify it.
+
+### Nightly reboot
+
+`openroom-nightly-reboot.timer` fires once daily at `updates_nightly_reboot_time` (default
+`03:00`), checking `/health`'s `state` field first — if `in_meeting`, it skips that night's reboot
+and logs why, rather than dropping an overnight call. `unattended-upgrades` is configured for
+security updates only, with its own automatic reboot disabled (`Automatic-Reboot "false"`) so
+this one timer is the single source of truth for reboot timing, rather than two independent
+reboot triggers racing each other.
+
+### Screen schedule
+
+`openroom-screen-schedule.timer` runs every minute, as the `kiosk` user, using `wlr-randr` against
+cage's Wayland output. Outside `screen_off_time`–`screen_on_time` (default `19:00`–`07:00`) the
+screen turns off, **except**: it stays on (or wakes early) if a meeting is currently in progress,
+or if the next calendar meeting starts within `screen_wake_before_minutes` (default 5) — read
+from the control service's own `/api/today`, so no separate calendar access is needed here. The
+on/off/wake-window decision logic was dry-run tested offline across daytime, out-of-hours,
+in-meeting, imminent-meeting and overnight-wraparound cases before being wired into Ansible.
+
+**Unverified**: this assumes cage's Wayland socket is named `wayland-1` (its default as the first
+compositor instance) and that a plain `User=kiosk` systemd service can reach it via
+`XDG_RUNTIME_DIR=/run/user/%U` — there's no real cage/Wayland session in this environment to
+confirm that against. If the screen doesn't respond, check
+`journalctl -u openroom-screen-schedule.service` for a `wlr-randr` connection error first.
+
+## Manual Teams call test
+
+See `docs/HARDWARE.md` for the manual-Chromium-session procedure — superseded day-to-day by the
+control service's own Join button once a real meeting is on the room's calendar (Milestone 4).

@@ -21,7 +21,11 @@ Work proceeds milestone by milestone. Current state:
       mailboxes, offline caching with a last-known-good fallback. M365 tenant setup documented in
       `docs/M365-SETUP.md`; scoping and end-to-end auth unverified against a real tenant (see
       `docs/OPERATIONS.md`).
-- [ ] Milestone 5 — Resilience
+- [x] Milestone 5 — Resilience: watchdog (restart kiosk after ~60s unhealthy, reboot after 3
+      restarts/10min), nightly reboot skipped during a meeting, auto-return to home on meeting
+      end, screen on/off schedule with early wake for the next meeting. Counting/scheduling logic
+      dry-run tested offline; screen control unverified against a real cage/Wayland session (see
+      `docs/OPERATIONS.md`).
 - [ ] Milestone 6 — Hardening and monitoring
 - [ ] Milestone 7 — Documentation
 
@@ -35,7 +39,7 @@ budget-limited spaces, not boardrooms or large rooms.
 
 ## Repository layout
 
-As of Milestone 4:
+As of Milestone 5:
 
 ```
 openroom/
@@ -44,9 +48,10 @@ openroom/
 │   ├── site.yml
 │   ├── inventory.example.yml
 │   ├── group_vars/rooms.yml
-│   └── roles/{base,kiosk,control,browser,av}/
+│   └── roles/{base,kiosk,control,browser,av,updates}/
 ├── control/
-│   ├── app/            (FastAPI app: routes, state machine, CDP client, Graph calendar client)
+│   ├── app/            (FastAPI app: routes, state machine, CDP client, Graph calendar client,
+│   │                     resilience watcher)
 │   ├── static/          (home screen: index.html, theme.css, app.js)
 │   ├── extension/      (Leave & Home Chromium extension)
 │   ├── tests/
@@ -54,7 +59,10 @@ openroom/
 ├── scripts/
 │   ├── openroom-avtest
 │   ├── openroom-avtest-tone.wav
-│   └── openroom-extension-id.py
+│   ├── openroom-extension-id.py
+│   ├── openroom-watchdog-check
+│   ├── openroom-nightly-reboot
+│   └── openroom-screen-schedule
 └── docs/
     ├── INSTALL.md
     ├── HARDWARE.md
