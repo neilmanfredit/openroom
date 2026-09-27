@@ -16,3 +16,7 @@ graph_client_private_key_pem: ""
 show_meeting_subject: true
 calendar_poll_interval_seconds: 60
 calendar_timezone: "Europe/London"
+
+# Resilience (Milestone 5)
+resilience_poll_interval_seconds: 10
+meeting_ended_grace_minutes: 5

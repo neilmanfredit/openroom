@@ -32,7 +32,28 @@ Work proceeds milestone by milestone. Current state:
       uptime. **Read `docs/OPERATIONS.md`'s warning before applying** — it changes SSH access and
       can lock you out if misconfigured. Full-disk encryption/Secure Boot deliberately documented,
       not automated.
-- [ ] Milestone 7 — Documentation
+- [x] Milestone 7 — Documentation: all docs (`INSTALL.md`, `HARDWARE.md`, `OPERATIONS.md`,
+      `M365-SETUP.md`) cross-checked against the actual current Ansible variables/roles, with
+      consolidated Logs/Re-authentication/Troubleshooting sections added to `OPERATIONS.md`. See
+      "Verification status" below for exactly what has and hasn't been confirmed.
+
+## Verification status
+
+This entire build was developed without any target Debian hardware, installed Chromium, or a
+real Microsoft 365 tenant available — see each milestone's notes above and `docs/OPERATIONS.md`'s
+"Known-unverified pieces" for specifics. What **has** been verified in that environment:
+
+- `pytest control/` — 40/40 passing, including tests that exercise real OIDC discovery against
+  `login.microsoftonline.com` and an extension-ID derivation checked against a throwaway keypair.
+- Every Ansible YAML file parses, and every Jinja2 template renders cleanly with the full merged
+  `group_vars`/role-defaults variable set (not just hand-picked samples).
+- The rendered `nftables` ruleset was checked against the real `nft` binary.
+- The watchdog's failure-counting/reboot-threshold logic and the screen schedule's decision logic
+  were both dry-run tested offline against faked `curl`/`systemctl`/`wlr-randr`.
+
+What this means: **a fresh build following `docs/INSTALL.md` has not been run end-to-end.** The
+first real deployment is that end-to-end test — expect to hit at least one of the specifically
+flagged unverified items, and please update the relevant doc once you've confirmed or fixed it.
 
 ## Known limitations
 
@@ -43,8 +64,6 @@ signed-in participant, not as a room system. It is suited to small huddle rooms 
 budget-limited spaces, not boardrooms or large rooms.
 
 ## Repository layout
-
-As of Milestone 6:
 
 ```
 openroom/

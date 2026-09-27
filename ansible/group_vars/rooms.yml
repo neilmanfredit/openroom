@@ -73,6 +73,12 @@ calendar_poll_interval_seconds: 60
 calendar_timezone: "Europe/London"
 
 # --- Resilience (Milestone 5) ---
+# How often the control service checks the active tab to auto-return
+# home when a meeting ends, and how long past a meeting's scheduled end
+# to wait before doing so unconditionally (see docs/OPERATIONS.md).
+resilience_poll_interval_seconds: 10
+meeting_ended_grace_minutes: 5
+
 # Nightly reboot, skipped automatically if a meeting is in progress.
 updates_nightly_reboot_time: "03:00"
 

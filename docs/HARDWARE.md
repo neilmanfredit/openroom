@@ -80,8 +80,8 @@ judge quality by ear/eye yourself.
 
 ## Manual Teams call test
 
-As of Milestone 3, this is done through the control service's own home screen rather than a
-throwaway Chromium session — set `control_demo_join_url` to a real Teams meeting link (see
-`docs/OPERATIONS.md`), tap Join on the kiosk's home screen, and confirm camera and microphone are
-active with no permission prompt (the managed policy's `VideoCaptureAllowedUrls`/
-`AudioCaptureAllowedUrls` pre-grant both). Full calendar-driven join links land in Milestone 4.
+This is done through the control service's own home screen rather than a throwaway Chromium
+session: book a real Teams meeting on the room's calendar (see `docs/M365-SETUP.md` and
+`docs/OPERATIONS.md` for getting the calendar connected), tap Join on the kiosk's home screen, and
+confirm camera and microphone are active with no permission prompt (the managed policy's
+`VideoCaptureAllowedUrls`/`AudioCaptureAllowedUrls` pre-grant both).

@@ -1,5 +1,22 @@
 # Operations
 
+## Logs
+
+Every OpenRoom component logs to journald:
+
+```sh
+journalctl -u openroom-control.service -f    # control service (state changes, calendar polls)
+journalctl -u openroom-kiosk.service -f      # cage + Chromium kiosk session
+journalctl -u openroom-av.service -f         # camera v4l2-ctl setup (boot/hot-plug)
+journalctl -t openroom-watchdog -f           # watchdog restart/reboot decisions
+journalctl -t openroom-nightly-reboot -f     # nightly reboot skip/proceed decisions
+journalctl -u openroom-screen-schedule.service -f  # screen on/off decisions
+journalctl -u nftables -u ssh -f             # firewall/SSH
+```
+
+`systemctl list-timers 'openroom-*'` shows when each timer-driven check (watchdog,
+screen-schedule, nightly-reboot) last ran and is next due.
+
 ## ⚠ Before applying the hardening role
 
 `roles/hardening` disables SSH password authentication and restricts SSH to
@@ -218,3 +235,30 @@ confirm that against. If the screen doesn't respond, check
 
 See `docs/HARDWARE.md` for the manual-Chromium-session procedure — superseded day-to-day by the
 control service's own Join button once a real meeting is on the room's calendar (Milestone 4).
+
+## Re-authentication
+
+The room account's Teams web session (separate from the Graph app's certificate auth used for
+calendar reads) eventually expires — a token lifetime, a password change, a Conditional Access
+policy change. **Symptom**: the kiosk shows a Microsoft sign-in page instead of the home screen or
+a joined meeting. **Fix**: follow `docs/M365-SETUP.md`'s "First sign-in and re-authentication"
+section — there's no automated re-auth in this build, so this is a manual, on-site (or
+console/KVM) step. Decide who's on call for this at your site.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Where to look |
+|---|---|---|
+| Boots to a blank/error page, not the home screen | `openroom-control.service` isn't up yet or crashed | `journalctl -u openroom-control.service`; confirm `openroom-kiosk.service`'s `Requires=openroom-control.service` ordering held |
+| Home screen shows no meetings, no "offline" banner | Graph not configured yet (`graph_tenant_id` etc. unset) — this is the disabled-by-default state, not a fault | `docs/M365-SETUP.md`, `docs/OPERATIONS.md` Configuration section |
+| Home screen shows no meetings, **with** an "offline" banner | Graph unreachable or auth failing | `journalctl -u openroom-control.service` for the exception; check network/cert per "Known-unverified pieces" below |
+| Microsoft sign-in page instead of home screen/meeting | Room account's Teams session expired | See Re-authentication above |
+| Join does nothing / times out | Chromium's DevTools port not responding | `curl http://127.0.0.1:9222/json/version`; check the watchdog hasn't just restarted the kiosk (`journalctl -t openroom-watchdog`) |
+| Camera/mic prompt appears instead of auto-granting | Browser policy not applied, or wrong Teams domain | Check `/etc/chromium/policies/managed/openroom.json` has `VideoCaptureAllowedUrls`/`AudioCaptureAllowedUrls` |
+| Can't SSH in any more | Hardening role applied without the pre-flight checklist | See the hardening warning above — needs local/console access to fix |
+| Screen doesn't turn on/off on schedule | `wlr-randr`/Wayland socket assumption wrong | `journalctl -u openroom-screen-schedule.service`; see the Screen schedule "Unverified" note above |
+| "Leave & Home" button doesn't appear on Teams pages | Extension not installed/force-listed | `chrome://policy` isn't reachable in kiosk mode — check `/etc/chromium/policies/managed/openroom.json`'s `ExtensionInstallForcelist` and that `/opt/openroom/extension/src.crx` exists |
+
+For anything not covered here, start with the relevant service's journal (see Logs above) and the
+"Known-unverified pieces" section, since most first-deployment issues on real hardware will be one
+of those.
