@@ -1,0 +1,6 @@
+---
+- name: Reload systemd and restart kiosk
+  ansible.builtin.systemd:
+    name: openroom-kiosk.service
+    daemon_reload: true
+    state: restarted

@@ -1,0 +1,4 @@
+---
+kiosk_user: kiosk
+kiosk_group: kiosk
+kiosk_home: /home/kiosk

@@ -1,0 +1,17 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install base kiosk packages
+  ansible.builtin.apt:
+    state: present
+    name:
+      - cage # single-application Wayland kiosk compositor
+      - chromium
+      - fonts-liberation # sane default fonts for web pages rendered on screen
+      - xdg-user-dirs
+      # No seatd: the kiosk service runs as a genuine logind session
+      # (PAMName=login on a real tty), so cage's libseat picks up seat0
+      # from systemd-logind directly.

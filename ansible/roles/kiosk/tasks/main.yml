@@ -1,0 +1,49 @@
+---
+- name: Create kiosk group
+  ansible.builtin.group:
+    name: "{{ kiosk_group }}"
+    system: true
+
+- name: Create kiosk user
+  ansible.builtin.user:
+    name: "{{ kiosk_user }}"
+    group: "{{ kiosk_group }}"
+    # video/input/render: fallback device access alongside the logind seat
+    # ACLs the PAM session grants automatically; no sudo, no interactive
+    # password login is possible ('!' as the password hash).
+    groups: video,input,render
+    home: "{{ kiosk_home }}"
+    shell: /bin/bash
+    password: '!'
+    system: true
+    create_home: true
+
+- name: Create Chromium profile directory for the kiosk user
+  ansible.builtin.file:
+    path: "{{ kiosk_home }}/.chromium"
+    state: directory
+    owner: "{{ kiosk_user }}"
+    group: "{{ kiosk_group }}"
+    mode: "0700"
+
+- name: Disable and mask the default getty on tty1
+  ansible.builtin.systemd:
+    name: getty@tty1.service
+    enabled: false
+    masked: true
+    state: stopped
+
+- name: Install the OpenRoom kiosk systemd unit
+  ansible.builtin.template:
+    src: openroom-kiosk.service.j2
+    dest: /etc/systemd/system/openroom-kiosk.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd and restart kiosk
+
+- name: Enable the OpenRoom kiosk service
+  ansible.builtin.systemd:
+    name: openroom-kiosk.service
+    enabled: true
+    daemon_reload: true

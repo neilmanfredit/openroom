@@ -1,0 +1,34 @@
+---
+- name: Create the OpenRoom static assets directory
+  ansible.builtin.file:
+    path: "{{ openroom_static_dir }}"
+    state: directory
+    owner: root
+    group: "{{ kiosk_group }}"
+    mode: "0755"
+
+- name: Deploy the Milestone 1 placeholder page
+  ansible.builtin.copy:
+    # Canonical source lives at the repo-level control/static/ (see
+    # CLAUDE.md's repository layout), not duplicated under the role.
+    src: "{{ playbook_dir }}/../control/static/placeholder.html"
+    dest: "{{ openroom_static_dir }}/placeholder.html"
+    owner: root
+    group: "{{ kiosk_group }}"
+    mode: "0644"
+
+- name: Create the Chromium managed policy directory
+  ansible.builtin.file:
+    path: /etc/chromium/policies/managed
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install the OpenRoom Chromium managed policy
+  ansible.builtin.template:
+    src: openroom-policy.json.j2
+    dest: /etc/chromium/policies/managed/openroom.json
+    owner: root
+    group: root
+    mode: "0644"

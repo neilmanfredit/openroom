@@ -1,0 +1,23 @@
+---
+# Defaults shared by all rooms. Override per-device in host_vars/<hostname>.yml.
+
+# Display name for the room; shown on the home screen once the control
+# service exists (Milestone 3+). Not yet used by Milestone 1.
+room_name: "Meeting Room"
+
+# The unprivileged local account that runs the kiosk session.
+kiosk_user: kiosk
+kiosk_group: kiosk
+kiosk_home: /home/kiosk
+
+# Where static assets served to the kiosk browser live on the device.
+openroom_static_dir: /opt/openroom/static
+
+# The page Chromium opens on start. Milestone 1 points this at a local
+# placeholder file; Milestone 3 will change this to the control service
+# once it exists (http://127.0.0.1:8080/).
+kiosk_start_url: "file://{{ openroom_static_dir }}/placeholder.html"
+
+# Extra Chromium command-line flags, appended after the fixed kiosk set
+# in roles/kiosk/templates/openroom-kiosk.service.j2.
+chromium_extra_flags: []

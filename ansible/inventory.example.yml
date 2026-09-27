@@ -1,0 +1,11 @@
+# Example inventory for a single OpenRoom device.
+# Copy to inventory.yml, adjust the host and connection details, and add a
+# matching file under host_vars/<hostname>.yml for any per-room overrides
+# (room_name, USB device IDs, etc — see group_vars/rooms.yml for what can
+# be overridden).
+all:
+  children:
+    rooms:
+      hosts:
+        room1.example.internal:
+          ansible_user: admin
