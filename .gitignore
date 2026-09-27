@@ -1,5 +1,7 @@
 *.retry
 .vault_pass*
+# Internal build spec — never published to the public repo.
+/CLAUDE.md
 *.vault-password
 .venv/
 __pycache__/
