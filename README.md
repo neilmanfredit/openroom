@@ -8,39 +8,36 @@ web client in a Chromium kiosk, signed in as a dedicated room resource account.
 
 ## Status
 
-Work proceeds milestone by milestone. Current state:
+Feature-complete. Current state:
 
-- [x] Milestone 1 — Bare kiosk: Ansible builds Debian into a `cage` + Chromium kiosk.
-- [x] Milestone 2 — AV: camera and speakerphone pinned as PipeWire/WirePlumber defaults by USB
-      vendor/product ID, `openroom-avtest` diagnostic command. Not yet verified on real hardware
-      (see `docs/HARDWARE.md`).
-- [x] Milestone 3 — Control service: FastAPI home screen, DevTools Protocol Join/Leave/Home,
-      "Leave & Home" Chromium extension. Some pieces unverified on real hardware (see
-      `docs/OPERATIONS.md`).
-- [x] Milestone 4 — Calendar: Microsoft Graph integration with certificate auth, scoped to room
-      mailboxes, offline caching with a last-known-good fallback. M365 tenant setup documented in
-      `docs/M365-SETUP.md`; scoping and end-to-end auth unverified against a real tenant (see
-      `docs/OPERATIONS.md`).
-- [x] Milestone 5 — Resilience: watchdog (restart kiosk after ~60s unhealthy, reboot after 3
-      restarts/10min), nightly reboot skipped during a meeting, auto-return to home on meeting
-      end, screen on/off schedule with early wake for the next meeting. Counting/scheduling logic
-      dry-run tested offline; screen control unverified against a real cage/Wayland session (see
-      `docs/OPERATIONS.md`).
-- [x] Milestone 6 — Hardening and monitoring: `nftables` default-deny firewall (SSH/node-exporter
-      restricted to a configurable management subnet), SSH key-only/no-root-login, USB storage
-      blocked, `prometheus-node-exporter`, `/health` extended with camera/audio presence and
-      uptime. **Read `docs/OPERATIONS.md`'s warning before applying** — it changes SSH access and
-      can lock you out if misconfigured. Full-disk encryption/Secure Boot deliberately documented,
-      not automated.
-- [x] Milestone 7 — Documentation: all docs (`INSTALL.md`, `HARDWARE.md`, `OPERATIONS.md`,
-      `M365-SETUP.md`) cross-checked against the actual current Ansible variables/roles, with
-      consolidated Logs/Re-authentication/Troubleshooting sections added to `OPERATIONS.md`. See
-      "Verification status" below for exactly what has and hasn't been confirmed.
+- **Bare kiosk**: Ansible builds Debian into a `cage` + Chromium kiosk.
+- **AV**: camera and speakerphone pinned as PipeWire/WirePlumber defaults by USB vendor/product
+  ID, `openroom-avtest` diagnostic command. Not yet verified on real hardware (see
+  `docs/HARDWARE.md`).
+- **Control service**: FastAPI home screen, DevTools Protocol Join/Leave/Home, "Leave & Home"
+  Chromium extension. Some pieces unverified on real hardware (see `docs/OPERATIONS.md`).
+- **Calendar**: Microsoft Graph integration with certificate auth, scoped to room mailboxes,
+  offline caching with a last-known-good fallback. M365 tenant setup documented in
+  `docs/M365-SETUP.md`; scoping and end-to-end auth unverified against a real tenant (see
+  `docs/OPERATIONS.md`).
+- **Resilience**: watchdog (restart kiosk after ~60s unhealthy, reboot after 3 restarts/10min),
+  nightly reboot skipped during a meeting, auto-return to home on meeting end, screen on/off
+  schedule with early wake for the next meeting. Counting/scheduling logic dry-run tested offline;
+  screen control unverified against a real cage/Wayland session (see `docs/OPERATIONS.md`).
+- **Hardening and monitoring**: `nftables` default-deny firewall (SSH/node-exporter restricted to
+  a configurable management subnet), SSH key-only/no-root-login, USB storage blocked,
+  `prometheus-node-exporter`, `/health` extended with camera/audio presence and uptime. **Read
+  `docs/OPERATIONS.md`'s warning before applying** — it changes SSH access and can lock you out
+  if misconfigured. Full-disk encryption/Secure Boot deliberately documented, not automated.
+- **Documentation**: all docs (`INSTALL.md`, `HARDWARE.md`, `OPERATIONS.md`, `M365-SETUP.md`)
+  cross-checked against the actual current Ansible variables/roles, with consolidated
+  Logs/Re-authentication/Troubleshooting sections added to `OPERATIONS.md`. See "Verification
+  status" below for exactly what has and hasn't been confirmed.
 
 ## Verification status
 
 This entire build was developed without any target Debian hardware, installed Chromium, or a
-real Microsoft 365 tenant available — see each milestone's notes above and `docs/OPERATIONS.md`'s
+real Microsoft 365 tenant available — see the notes above and `docs/OPERATIONS.md`'s
 "Known-unverified pieces" for specifics. What **has** been verified in that environment:
 
 - `pytest control/` — 40/40 passing, including tests that exercise real OIDC discovery against

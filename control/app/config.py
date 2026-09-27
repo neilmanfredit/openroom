@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     extension_id_path: str = "/opt/openroom/extension/id.txt"
     extension_version: str = "1.0.0"
 
-    # --- Calendar (Milestone 4) ---
+    # --- Calendar ---
     # Left blank by default: calendar polling stays disabled (rather than
     # crashing) until the room's app registration exists — see
     # docs/M365-SETUP.md. Certificate PEM contents are read from these
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     calendar_timezone: str = "Europe/London"
     calendar_cache_path: str = "/opt/openroom/state/calendar-cache.json"
 
-    # --- Resilience (Milestone 5) ---
+    # --- Resilience ---
     # How often the auto-return-to-home watcher checks the active tab.
     resilience_poll_interval_seconds: int = 10
 

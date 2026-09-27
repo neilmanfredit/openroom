@@ -2,7 +2,7 @@
 # Replaces getty on tty1 with a Wayland kiosk session: cage running a single
 # fullscreen Chromium instance. Using a dedicated service (rather than
 # autologin + shell profile) keeps the session declarative and lets the
-# watchdog (added in a later milestone) manage it like any other unit.
+# watchdog (roles/updates) manage it like any other unit.
 [Unit]
 Description=OpenRoom kiosk session
 After=systemd-user-sessions.service getty@tty1.service openroom-control.service

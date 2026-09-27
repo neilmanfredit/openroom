@@ -4,9 +4,9 @@
 
 None yet. This build has not been run against real hardware — it has been developed and
 validated (YAML/Jinja2 syntax, template rendering, shell syntax) on a non-Debian development
-machine with no room camera or speakerphone attached. Treat Milestone 2's AV role as unverified
-until it's been run on an actual device; please add an entry here once it has, including the mini
-PC model, camera/speakerphone models, and any deviations from the defaults below.
+machine with no room camera or speakerphone attached. Treat the AV role as unverified until it's
+been run on an actual device; please add an entry here once it has, including the mini PC model,
+camera/speakerphone models, and any deviations from the defaults below.
 
 ## Identifying your camera and speakerphone
 

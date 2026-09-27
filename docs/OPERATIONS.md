@@ -129,7 +129,7 @@ Set per-room in `ansible/host_vars/<hostname>.yml`:
 ### Manually exercising Join/Leave/Home
 
 With the service running (and Chromium reachable at `127.0.0.1:9222`), find a meeting ID from
-`/api/today` first (there's no calendar-less hard-coded demo meeting any more as of Milestone 4):
+`/api/today` first (there's no calendar-less hard-coded demo meeting):
 
 ```sh
 curl http://127.0.0.1:8080/api/today
@@ -140,8 +140,8 @@ curl http://127.0.0.1:8080/health
 
 ## Known-unverified pieces (check first on real hardware)
 
-Same treatment as the AV role in Milestone 2 — these are built to spec but haven't been run
-against a real Chromium/Debian install in this environment:
+Same treatment as the AV role — these are built to spec but haven't been run against a real
+Chromium/Debian install in this environment:
 
 - **`chromium --headless --pack-extension`**: the `control` role uses Chromium's own extension
   packer to produce the signed CRX for the "Leave & Home" extension, run during provisioning
@@ -178,7 +178,7 @@ against a real Chromium/Debian install in this environment:
   acceptance criteria explicitly call for verifying and documenting that the app cannot read a
   non-room mailbox. Do that test and record the result before relying on it.
 
-## Resilience (Milestone 5)
+## Resilience
 
 ### Auto-return to home
 
@@ -234,7 +234,7 @@ confirm that against. If the screen doesn't respond, check
 ## Manual Teams call test
 
 See `docs/HARDWARE.md` for the manual-Chromium-session procedure — superseded day-to-day by the
-control service's own Join button once a real meeting is on the room's calendar (Milestone 4).
+control service's own Join button once a real meeting is on the room's calendar.
 
 ## Re-authentication
 

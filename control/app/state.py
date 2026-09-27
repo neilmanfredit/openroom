@@ -6,8 +6,8 @@ from typing import Optional
 @dataclass
 class MeetingState:
     """Home vs. in-meeting. current_meeting_id lets the resilience
-    watcher (Milestone 5) look the joined meeting back up in the
-    calendar cache to check its scheduled end time."""
+    watcher look the joined meeting back up in the calendar cache to
+    check its scheduled end time."""
 
     status: str = "home"
     current_join_url: Optional[str] = None

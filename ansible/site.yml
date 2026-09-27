@@ -1,5 +1,5 @@
 ---
-# OpenRoom device build — all roles through Milestone 6.
+# OpenRoom device build — all roles.
 #
 # control must run before browser: the browser role's managed policy
 # needs the Chromium extension ID the control role computes when it packs

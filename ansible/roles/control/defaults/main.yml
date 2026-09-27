@@ -5,9 +5,9 @@ control_join_by_id_url: "https://teams.microsoft.com/meet"
 control_external_base_url: "http://127.0.0.1:8080"
 control_extension_version: "1.0.0"
 
-# Calendar (Milestone 4) — see docs/M365-SETUP.md. Left blank here;
-# non-secret values go in group_vars/host_vars, secrets are vaulted in
-# host_vars only. Calendar polling stays disabled until these are set.
+# Calendar — see docs/M365-SETUP.md. Left blank here; non-secret values
+# go in group_vars/host_vars, secrets are vaulted in host_vars only.
+# Calendar polling stays disabled until these are set.
 graph_tenant_id: ""
 graph_client_id: ""
 room_mailbox_upn: ""
@@ -17,6 +17,6 @@ show_meeting_subject: true
 calendar_poll_interval_seconds: 60
 calendar_timezone: "Europe/London"
 
-# Resilience (Milestone 5)
+# Resilience
 resilience_poll_interval_seconds: 10
 meeting_ended_grace_minutes: 5

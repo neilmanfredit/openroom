@@ -61,9 +61,9 @@ async def join_by_id(
     chrome: Annotated[ChromeController, Depends(get_chrome_controller)],
 ):
     # Teams has no documented deep-link format for an ID+passcode join
-    # (unlike onlineMeeting.joinUrl from Graph, Milestone 4) — navigate to
-    # Teams' own join page and let the operator type it in. Best-effort,
-    # unverified against a live Teams session. Never log the passcode.
+    # (unlike onlineMeeting.joinUrl from Graph) — navigate to Teams' own
+    # join page and let the operator type it in. Best-effort, unverified
+    # against a live Teams session. Never log the passcode.
     logger.info("join-by-id requested")
     await chrome.navigate(settings.join_by_id_url)
     meeting_state.join(settings.join_by_id_url)

@@ -18,7 +18,7 @@ kiosk_start_url: "http://127.0.0.1:8080/"
 # in roles/kiosk/templates/openroom-kiosk.service.j2.
 chromium_extra_flags: []
 
-# --- AV (Milestone 2) ---
+# --- AV ---
 # Identify the room's speakerphone and camera by USB vendor/product ID
 # (from `lsusb`, e.g. "046d") rather than relying on enumeration order,
 # which changes across reboots and hot-plug events. These placeholders
@@ -47,7 +47,7 @@ av_camera_format:
 # device and fill these in (see docs/HARDWARE.md).
 av_camera_v4l2_controls: []
 
-# --- Control service (Milestone 3) ---
+# --- Control service ---
 # Teams' own "join with an ID and passcode" page — see docs/OPERATIONS.md
 # for why this isn't a constructed deep link.
 control_join_by_id_url: "https://teams.microsoft.com/meet"
@@ -55,7 +55,7 @@ control_join_by_id_url: "https://teams.microsoft.com/meet"
 control_external_base_url: "http://127.0.0.1:8080"
 control_extension_version: "1.0.0"
 
-# --- Calendar (Milestone 4) ---
+# --- Calendar ---
 # App registration IDs (not secret) — see docs/M365-SETUP.md. Calendar
 # polling stays disabled until these, and the vaulted certificate/key in
 # host_vars, are set per-room.
@@ -72,7 +72,7 @@ show_meeting_subject: true
 calendar_poll_interval_seconds: 60
 calendar_timezone: "Europe/London"
 
-# --- Resilience (Milestone 5) ---
+# --- Resilience ---
 # How often the control service checks the active tab to auto-return
 # home when a meeting ends, and how long past a meeting's scheduled end
 # to wait before doing so unconditionally (see docs/OPERATIONS.md).
@@ -93,7 +93,7 @@ screen_off_time: "19:00"
 screen_on_time: "07:00"
 screen_wake_before_minutes: 5
 
-# --- Hardening and monitoring (Milestone 6) ---
+# --- Hardening and monitoring ---
 # RFC 5737 TEST-NET placeholder — matches no real network. MUST be set to
 # the real management subnet in host_vars/<hostname>.yml before applying:
 # forgetting this locks out SSH entirely rather than leaving it open.

@@ -1,11 +1,11 @@
 # Install
 
-This covers the full build (Milestones 1-6; Milestone 7 is this documentation itself): a Debian
-13 (trixie) mini PC turned into a `cage` + Chromium kiosk with the room's camera and speakerphone
-pinned as defaults, running the home screen and control service driven by the room's real
-Microsoft 365 calendar, a watchdog/nightly-reboot/auto-return/screen-schedule resilience layer,
-and a locked-down firewall/SSH/USB-storage posture with basic monitoring. **Read
-`docs/OPERATIONS.md`'s hardening warning before step 3** — it changes SSH access.
+This covers the full build: a Debian 13 (trixie) mini PC turned into a `cage` + Chromium kiosk
+with the room's camera and speakerphone pinned as defaults, running the home screen and control
+service driven by the room's real Microsoft 365 calendar, a
+watchdog/nightly-reboot/auto-return/screen-schedule resilience layer, and a locked-down
+firewall/SSH/USB-storage posture with basic monitoring. **Read `docs/OPERATIONS.md`'s hardening
+warning before step 3** — it changes SSH access.
 
 **This has not been run end-to-end against real hardware** — see the README's "Verification
 status" section for exactly what has and hasn't been confirmed. Treat the steps below as the
