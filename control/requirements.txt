@@ -4,3 +4,5 @@ httpx==0.28.1
 websockets==17.1
 pydantic==2.13.5
 pydantic-settings==2.15.0
+msal==1.39.0
+cryptography==50.0.1

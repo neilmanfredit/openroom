@@ -14,10 +14,13 @@ Work proceeds milestone by milestone. Current state:
 - [x] Milestone 2 — AV: camera and speakerphone pinned as PipeWire/WirePlumber defaults by USB
       vendor/product ID, `openroom-avtest` diagnostic command. Not yet verified on real hardware
       (see `docs/HARDWARE.md`).
-- [x] Milestone 3 — Control service: FastAPI home screen, DevTools Protocol Join/Leave/Home with
-      a hard-coded join URL, "Leave & Home" Chromium extension. Some pieces unverified on real
-      hardware (see `docs/OPERATIONS.md`).
-- [ ] Milestone 4 — Calendar
+- [x] Milestone 3 — Control service: FastAPI home screen, DevTools Protocol Join/Leave/Home,
+      "Leave & Home" Chromium extension. Some pieces unverified on real hardware (see
+      `docs/OPERATIONS.md`).
+- [x] Milestone 4 — Calendar: Microsoft Graph integration with certificate auth, scoped to room
+      mailboxes, offline caching with a last-known-good fallback. M365 tenant setup documented in
+      `docs/M365-SETUP.md`; scoping and end-to-end auth unverified against a real tenant (see
+      `docs/OPERATIONS.md`).
 - [ ] Milestone 5 — Resilience
 - [ ] Milestone 6 — Hardening and monitoring
 - [ ] Milestone 7 — Documentation
@@ -32,7 +35,7 @@ budget-limited spaces, not boardrooms or large rooms.
 
 ## Repository layout
 
-As of Milestone 3:
+As of Milestone 4:
 
 ```
 openroom/
@@ -43,7 +46,7 @@ openroom/
 │   ├── group_vars/rooms.yml
 │   └── roles/{base,kiosk,control,browser,av}/
 ├── control/
-│   ├── app/            (FastAPI app: routes, state machine, CDP client)
+│   ├── app/            (FastAPI app: routes, state machine, CDP client, Graph calendar client)
 │   ├── static/          (home screen: index.html, theme.css, app.js)
 │   ├── extension/      (Leave & Home Chromium extension)
 │   ├── tests/
@@ -55,5 +58,6 @@ openroom/
 └── docs/
     ├── INSTALL.md
     ├── HARDWARE.md
-    └── OPERATIONS.md
+    ├── OPERATIONS.md
+    └── M365-SETUP.md
 ```

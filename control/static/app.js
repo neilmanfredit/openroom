@@ -42,7 +42,10 @@ async function refreshMeetings() {
     const resp = await fetch('/api/today');
     if (!resp.ok) throw new Error('bad response');
     const data = await resp.json();
-    offlineEl.hidden = true;
+    // `offline` means Graph itself is unreachable but we're still
+    // showing the last-known-good calendar data, per spec — distinct
+    // from this fetch to our own local service failing outright below.
+    offlineEl.hidden = !data.offline;
     roomNameEl.textContent = data.room_name;
     renderMeetings(data.meetings);
   } catch (err) {

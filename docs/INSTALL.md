@@ -1,9 +1,9 @@
 # Install
 
-This covers Milestones 1-3: building a Debian 13 (trixie) mini PC into a `cage` + Chromium kiosk
-with the room's camera and speakerphone pinned as defaults, running the real home screen and
-control service (Join/Leave/Home, with a hard-coded meeting link — calendar integration is
-Milestone 4). Later milestones (calendar, hardening, monitoring) will extend this document.
+This covers Milestones 1-4: building a Debian 13 (trixie) mini PC into a `cage` + Chromium kiosk
+with the room's camera and speakerphone pinned as defaults, running the home screen and control
+service driven by the room's real Microsoft 365 calendar. Later milestones (hardening,
+monitoring) will extend this document.
 
 ## 1. Install Debian 13 on the device
 
@@ -40,9 +40,11 @@ Before running the playbook, identify the room's camera and speakerphone and set
 applies without these, but audio/video device pinning won't do anything useful until they're set
 to the real hardware's IDs.
 
-Also set `control_demo_join_url` to a real Teams meeting link to exercise Join/Leave/Home end to
-end — see `docs/OPERATIONS.md`. There's no calendar yet (Milestone 4), so this one fixed link is
-what the home screen's Join button uses.
+Also complete the Microsoft 365 side (room mailbox, app registration, certificate) per
+`docs/M365-SETUP.md`, then set `graph_tenant_id`, `graph_client_id`, `room_mailbox_upn` and the
+vaulted certificate/key in that `host_vars` file — see `docs/OPERATIONS.md`. Without these, the
+device still boots to a working home screen; it just shows no meetings (calendar polling stays
+disabled rather than failing).
 
 ## 3. Run the playbook
 
@@ -57,18 +59,23 @@ This is idempotent — running it again should report no changes.
 
 - Reboot the device: `sudo reboot`.
 - It should boot directly to a fullscreen Chromium window showing the OpenRoom home screen (room
-  name, clock, a "Demo meeting" entry with a Join button), with no login prompt, desktop, or
+  name, clock, today's meetings from the room's calendar), with no login prompt, desktop, or
   window chrome visible.
 - Confirm there's no way to reach a TTY login prompt, virtual console switch, or window manager
   from the kiosk screen.
 - Run `openroom-avtest` and check the report (see `docs/HARDWARE.md`).
 - Unplug and replug the camera and speakerphone; confirm they're still picked up without a
   reboot.
-- Tap Join, confirm the meeting opens with no permission prompts, then use the "Leave & Home"
-  button Teams shows to return to the home screen (see `docs/OPERATIONS.md`).
-- `curl http://127.0.0.1:8080/health` from the device should return `{"status": "ok", ...}`.
+- Book a test Teams meeting on the room's calendar, confirm it appears on the home screen, tap
+  Join, confirm it opens with no permission prompts, then use the "Leave & Home" button Teams
+  shows to return to the home screen (see `docs/OPERATIONS.md`).
+- `curl http://127.0.0.1:8080/health` from the device should return `{"status": "ok", ...}`,
+  including calendar poll status.
+- Confirm the "offline" banner appears if you temporarily block the device's access to
+  `graph.microsoft.com` (e.g. in `/etc/hosts` or a firewall rule), and that the last-known
+  meetings keep showing rather than disappearing.
 
 ## What's not covered yet
 
-Calendar integration, firewall/hardening, automatic updates and monitoring all arrive in later
-milestones and will be documented here as they land.
+Firewall/hardening, automatic updates and monitoring all arrive in later milestones and will be
+documented here as they land.

@@ -1,7 +1,18 @@
 ---
 room_name: "Meeting Room"
 kiosk_start_url: "http://127.0.0.1:8080/"
-control_demo_join_url: "https://teams.microsoft.com/l/meetup-join/REPLACE_ME"
 control_join_by_id_url: "https://teams.microsoft.com/meet"
 control_external_base_url: "http://127.0.0.1:8080"
 control_extension_version: "1.0.0"
+
+# Calendar (Milestone 4) — see docs/M365-SETUP.md. Left blank here;
+# non-secret values go in group_vars/host_vars, secrets are vaulted in
+# host_vars only. Calendar polling stays disabled until these are set.
+graph_tenant_id: ""
+graph_client_id: ""
+room_mailbox_upn: ""
+graph_client_certificate_pem: ""
+graph_client_private_key_pem: ""
+show_meeting_subject: true
+calendar_poll_interval_seconds: 60
+calendar_timezone: "Europe/London"

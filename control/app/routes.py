@@ -4,6 +4,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from .calendar import calendar_cache
 from .cdp import ChromeController, get_chrome_controller
 from .config import settings
 from .state import MeetingState
@@ -29,10 +30,8 @@ class JoinByIdRequest(BaseModel):
 async def get_today():
     return {
         "room_name": settings.room_name,
-        # Milestone 4 replaces this with real Graph calendar data.
-        "meetings": [
-            {"id": "demo", "subject": "Demo meeting", "join_url_available": True}
-        ],
+        "offline": calendar_cache.offline,
+        "meetings": [m.to_public_dict() for m in calendar_cache.meetings],
     }
 
 
@@ -41,11 +40,14 @@ async def join_meeting(
     meeting_id: str,
     chrome: Annotated[ChromeController, Depends(get_chrome_controller)],
 ):
-    if meeting_id != "demo":
+    meeting = calendar_cache.find(meeting_id)
+    if meeting is None:
         raise HTTPException(status_code=404, detail="unknown meeting")
+    if not meeting.join_url:
+        raise HTTPException(status_code=400, detail="meeting has no Teams join link")
     logger.info("joining meeting id=%s", meeting_id)
-    await chrome.navigate(settings.demo_join_url)
-    meeting_state.join(settings.demo_join_url)
+    await chrome.navigate(meeting.join_url)
+    meeting_state.join(meeting.join_url)
     return {"status": meeting_state.status}
 
 
@@ -77,4 +79,9 @@ async def go_home(
 
 @router.get("/health")
 async def health():
-    return {"status": "ok", "state": meeting_state.status}
+    return {
+        "status": "ok",
+        "state": meeting_state.status,
+        "calendar_offline": calendar_cache.offline,
+        "calendar_last_success": calendar_cache.last_success,
+    }

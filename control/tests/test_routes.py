@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app import routes
+from app.calendar import Meeting, calendar_cache
 from app.cdp import get_chrome_controller
 from app.main import app
 
@@ -26,31 +27,58 @@ def make_client():
     return TestClient(app), fake
 
 
+def seed_meeting(join_url="https://teams.microsoft.com/l/meetup-join/test"):
+    meeting = Meeting(
+        id="evt-1",
+        display_subject="Test meeting",
+        start="2026-09-30T10:00:00",
+        end="2026-09-30T10:30:00",
+        join_url=join_url,
+    )
+    calendar_cache.meetings = [meeting]
+    return meeting
+
+
 def teardown_function(_):
     app.dependency_overrides.clear()
     routes.meeting_state.leave()
+    calendar_cache.meetings = []
+    calendar_cache.offline = False
 
 
 def test_health():
     client, _ = make_client()
     resp = client.get("/health")
     assert resp.status_code == 200
-    assert resp.json()["status"] == "ok"
+    body = resp.json()
+    assert body["status"] == "ok"
+    assert "calendar_offline" in body
 
 
-def test_today_returns_demo_meeting():
+def test_today_returns_seeded_meeting():
     client, _ = make_client()
+    seed_meeting()
     resp = client.get("/api/today")
     assert resp.status_code == 200
-    assert resp.json()["meetings"][0]["id"] == "demo"
+    body = resp.json()
+    assert body["meetings"][0]["id"] == "evt-1"
+    assert body["meetings"][0]["join_url_available"] is True
+
+
+def test_today_reports_offline_flag():
+    client, _ = make_client()
+    calendar_cache.offline = True
+    resp = client.get("/api/today")
+    assert resp.json()["offline"] is True
 
 
 def test_join_navigates_and_sets_state():
     client, fake = make_client()
-    resp = client.post("/api/join/demo")
+    meeting = seed_meeting()
+    resp = client.post("/api/join/evt-1")
     assert resp.status_code == 200
     assert resp.json()["status"] == "in_meeting"
-    assert fake.navigated_to == [routes.settings.demo_join_url]
+    assert fake.navigated_to == [meeting.join_url]
 
 
 def test_join_unknown_meeting_404():
@@ -59,9 +87,17 @@ def test_join_unknown_meeting_404():
     assert resp.status_code == 404
 
 
+def test_join_meeting_without_join_url_400():
+    client, _ = make_client()
+    seed_meeting(join_url=None)
+    resp = client.post("/api/join/evt-1")
+    assert resp.status_code == 400
+
+
 def test_home_clears_storage_and_navigates():
     client, fake = make_client()
-    client.post("/api/join/demo")
+    seed_meeting()
+    client.post("/api/join/evt-1")
     resp = client.post("/api/home")
     assert resp.status_code == 200
     assert resp.json()["status"] == "home"

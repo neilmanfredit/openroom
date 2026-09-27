@@ -26,6 +26,35 @@
     - /opt/openroom/control/app
     - /opt/openroom/control/static
     - /opt/openroom/extension
+    - /opt/openroom/state
+
+- name: Create the Graph certificate directory
+  ansible.builtin.file:
+    path: /etc/openroom/graph
+    state: directory
+    owner: openroom-control
+    group: openroom-control
+    mode: "0700"
+
+- name: Deploy the Graph client certificate
+  ansible.builtin.copy:
+    content: "{{ graph_client_certificate_pem }}"
+    dest: /etc/openroom/graph/cert.pem
+    owner: openroom-control
+    group: openroom-control
+    mode: "0600"
+  when: graph_client_certificate_pem | default('') | length > 0
+  notify: Restart control service
+
+- name: Deploy the Graph client private key
+  ansible.builtin.copy:
+    content: "{{ graph_client_private_key_pem }}"
+    dest: /etc/openroom/graph/key.pem
+    owner: openroom-control
+    group: openroom-control
+    mode: "0600"
+  when: graph_client_private_key_pem | default('') | length > 0
+  notify: Restart control service
 
 - name: Deploy the control service application code
   ansible.builtin.copy:
