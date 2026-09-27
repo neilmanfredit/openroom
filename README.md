@@ -1,22 +1,22 @@
 # OpenRoom
 
 A reproducible, low-cost meeting room appliance that joins Microsoft Teams meetings from a fixed
-room, built on a small x86 mini PC running Debian and open-source Linux components. See
-[`CLAUDE.md`](CLAUDE.md) for the full specification and build plan.
+room, built on a small x86 mini PC running Debian and open-source Linux components.
 
 OpenRoom is **not** a certified Microsoft Teams Rooms device. It joins meetings through the Teams
 web client in a Chromium kiosk, signed in as a dedicated room resource account.
 
 ## Status
 
-Work proceeds milestone by milestone (see `CLAUDE.md`). Current state:
+Work proceeds milestone by milestone. Current state:
 
-- [x] Milestone 1 — Bare kiosk: Ansible builds Debian into a `cage` + Chromium kiosk showing a
-      static placeholder page.
+- [x] Milestone 1 — Bare kiosk: Ansible builds Debian into a `cage` + Chromium kiosk.
 - [x] Milestone 2 — AV: camera and speakerphone pinned as PipeWire/WirePlumber defaults by USB
       vendor/product ID, `openroom-avtest` diagnostic command. Not yet verified on real hardware
       (see `docs/HARDWARE.md`).
-- [ ] Milestone 3 — Control service
+- [x] Milestone 3 — Control service: FastAPI home screen, DevTools Protocol Join/Leave/Home with
+      a hard-coded join URL, "Leave & Home" Chromium extension. Some pieces unverified on real
+      hardware (see `docs/OPERATIONS.md`).
 - [ ] Milestone 4 — Calendar
 - [ ] Milestone 5 — Resilience
 - [ ] Milestone 6 — Hardening and monitoring
@@ -32,23 +32,28 @@ budget-limited spaces, not boardrooms or large rooms.
 
 ## Repository layout
 
-See `CLAUDE.md` for the full target layout. As of Milestone 2:
+As of Milestone 3:
 
 ```
 openroom/
-├── CLAUDE.md
 ├── README.md
 ├── ansible/
 │   ├── site.yml
 │   ├── inventory.example.yml
 │   ├── group_vars/rooms.yml
-│   └── roles/{base,kiosk,browser,av}/
+│   └── roles/{base,kiosk,control,browser,av}/
 ├── control/
-│   └── static/placeholder.html
+│   ├── app/            (FastAPI app: routes, state machine, CDP client)
+│   ├── static/          (home screen: index.html, theme.css, app.js)
+│   ├── extension/      (Leave & Home Chromium extension)
+│   ├── tests/
+│   └── requirements.txt
 ├── scripts/
 │   ├── openroom-avtest
-│   └── openroom-avtest-tone.wav
+│   ├── openroom-avtest-tone.wav
+│   └── openroom-extension-id.py
 └── docs/
     ├── INSTALL.md
-    └── HARDWARE.md
+    ├── HARDWARE.md
+    └── OPERATIONS.md
 ```

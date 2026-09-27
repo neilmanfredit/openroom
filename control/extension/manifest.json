@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "OpenRoom Leave & Home",
+  "version": "1.0.0",
+  "description": "Adds an always-available Leave & Home control to the Teams web client.",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://teams.microsoft.com/*",
+        "https://teams.live.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "http://127.0.0.1:8080/*"
+  ]
+}

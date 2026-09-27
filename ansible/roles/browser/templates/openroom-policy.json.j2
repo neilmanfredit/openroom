@@ -24,5 +24,20 @@
   "AudioCaptureAllowedUrls": [
     "https://teams.microsoft.com",
     "https://teams.live.com"
+  ],
+
+  "DeveloperToolsAvailability": 2,
+
+  "URLAllowlist": [
+    "https://teams.microsoft.com/*",
+    "https://teams.live.com/*",
+    "https://login.microsoftonline.com/*",
+    "https://login.live.com/*",
+    "http://127.0.0.1:8080/*"
+  ],
+  "URLBlocklist": ["*"],
+
+  "ExtensionInstallForcelist": [
+    "{{ openroom_extension_id }};http://127.0.0.1:8080/extension/update.xml"
   ]
 }

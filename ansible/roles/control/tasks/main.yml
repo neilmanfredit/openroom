@@ -1,0 +1,127 @@
+---
+- name: Install control service system packages
+  ansible.builtin.apt:
+    state: present
+    name:
+      - python3-venv
+      - python3-pip
+      - python3-cryptography # used by scripts/openroom-extension-id.py at provisioning time
+
+- name: Create the control service system user
+  ansible.builtin.user:
+    name: openroom-control
+    system: true
+    create_home: false
+    shell: /usr/sbin/nologin
+
+- name: Create the control service directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: openroom-control
+    group: openroom-control
+    mode: "0755"
+  loop:
+    - /opt/openroom/control
+    - /opt/openroom/control/app
+    - /opt/openroom/control/static
+    - /opt/openroom/extension
+
+- name: Deploy the control service application code
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../control/app/"
+    dest: /opt/openroom/control/app/
+    owner: openroom-control
+    group: openroom-control
+    mode: "0644"
+  notify: Restart control service
+
+- name: Deploy the home screen static assets
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../control/static/"
+    dest: /opt/openroom/control/static/
+    owner: openroom-control
+    group: openroom-control
+    mode: "0644"
+
+- name: Deploy the pinned requirements file
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../control/requirements.txt"
+    dest: /opt/openroom/control/requirements.txt
+    owner: openroom-control
+    group: openroom-control
+    mode: "0644"
+  notify:
+    - Reinstall control venv
+    - Restart control service
+
+- name: Create the control service virtualenv
+  ansible.builtin.pip:
+    requirements: /opt/openroom/control/requirements.txt
+    virtualenv: /opt/openroom/venv
+    virtualenv_command: /usr/bin/python3 -m venv
+
+- name: Install the control service environment file
+  ansible.builtin.template:
+    src: openroom-control.env.j2
+    dest: /etc/openroom/control.env
+    owner: root
+    group: openroom-control
+    mode: "0640"
+  notify: Restart control service
+
+- name: Install the control service systemd unit
+  ansible.builtin.template:
+    src: openroom-control.service.j2
+    dest: /etc/systemd/system/openroom-control.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart control service
+
+- name: Enable the control service
+  ansible.builtin.systemd:
+    name: openroom-control.service
+    enabled: true
+    daemon_reload: true
+    state: started
+
+# --- Leave & Home extension: signed CRX + self-hosted update manifest,
+# per CLAUDE.md's ExtensionInstallForcelist requirement (see the AV-style
+# "unverified" note in docs/OPERATIONS.md — chromium --pack-extension has
+# not been exercised on a real Debian minimal install in this build).
+
+- name: Generate the extension signing key
+  ansible.builtin.command: openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /opt/openroom/extension/key.pem
+  args:
+    creates: /opt/openroom/extension/key.pem
+  notify: Repack extension
+
+- name: Deploy the Leave & Home extension source
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../control/extension/"
+    dest: /opt/openroom/extension/src/
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Repack extension
+
+- name: Compute the extension ID from the signing key
+  ansible.builtin.script: "{{ playbook_dir }}/../scripts/openroom-extension-id.py /opt/openroom/extension/key.pem"
+  register: openroom_extension_id_result
+  changed_when: false
+
+- name: Record the extension ID as a fact
+  ansible.builtin.set_fact:
+    openroom_extension_id: "{{ openroom_extension_id_result.stdout | trim }}"
+
+- name: Write the extension ID for the control service to read
+  ansible.builtin.copy:
+    content: "{{ openroom_extension_id }}"
+    dest: /opt/openroom/extension/id.txt
+    owner: openroom-control
+    group: openroom-control
+    mode: "0644"
+
+- name: Ensure handler-driven changes are applied before browser policy needs the extension ID
+  ansible.builtin.meta: flush_handlers

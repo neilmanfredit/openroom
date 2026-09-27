@@ -1,8 +1,9 @@
 # Install
 
-This covers Milestones 1-2: building a Debian 13 (trixie) mini PC into a `cage` + Chromium kiosk
-showing a static placeholder page, with the room's camera and speakerphone pinned as defaults.
-Later milestones (control service, calendar, hardening, monitoring) will extend this document.
+This covers Milestones 1-3: building a Debian 13 (trixie) mini PC into a `cage` + Chromium kiosk
+with the room's camera and speakerphone pinned as defaults, running the real home screen and
+control service (Join/Leave/Home, with a hard-coded meeting link — calendar integration is
+Milestone 4). Later milestones (calendar, hardening, monitoring) will extend this document.
 
 ## 1. Install Debian 13 on the device
 
@@ -39,6 +40,10 @@ Before running the playbook, identify the room's camera and speakerphone and set
 applies without these, but audio/video device pinning won't do anything useful until they're set
 to the real hardware's IDs.
 
+Also set `control_demo_join_url` to a real Teams meeting link to exercise Join/Leave/Home end to
+end — see `docs/OPERATIONS.md`. There's no calendar yet (Milestone 4), so this one fixed link is
+what the home screen's Join button uses.
+
 ## 3. Run the playbook
 
 ```sh
@@ -51,17 +56,19 @@ This is idempotent — running it again should report no changes.
 ## 4. Verify
 
 - Reboot the device: `sudo reboot`.
-- It should boot directly to a fullscreen Chromium window showing the OpenRoom placeholder page,
-  with no login prompt, desktop, or window chrome visible.
+- It should boot directly to a fullscreen Chromium window showing the OpenRoom home screen (room
+  name, clock, a "Demo meeting" entry with a Join button), with no login prompt, desktop, or
+  window chrome visible.
 - Confirm there's no way to reach a TTY login prompt, virtual console switch, or window manager
   from the kiosk screen.
 - Run `openroom-avtest` and check the report (see `docs/HARDWARE.md`).
 - Unplug and replug the camera and speakerphone; confirm they're still picked up without a
   reboot.
-- Do a manual Teams test call following `docs/HARDWARE.md` and confirm audio/video work with no
-  permission prompts.
+- Tap Join, confirm the meeting opens with no permission prompts, then use the "Leave & Home"
+  button Teams shows to return to the home screen (see `docs/OPERATIONS.md`).
+- `curl http://127.0.0.1:8080/health` from the device should return `{"status": "ok", ...}`.
 
 ## What's not covered yet
 
-The real home screen and calendar, firewall/hardening, automatic updates and monitoring all
-arrive in later milestones and will be documented here as they land.
+Calendar integration, firewall/hardening, automatic updates and monitoring all arrive in later
+milestones and will be documented here as they land.

@@ -78,21 +78,10 @@ still frame from the camera, printing a PASS/FAIL line per step and the paths to
 and still frame. It confirms the pipeline runs end-to-end — pull the files off with `scp` to
 judge quality by ear/eye yourself.
 
-## Manual Teams call test (Milestone 2 acceptance)
+## Manual Teams call test
 
-The control service (Milestone 3) isn't built yet, so the kiosk's Chromium instance is locked to
-the local placeholder page. To manually verify a Teams call works with no permission prompts:
-
-1. SSH into the device.
-2. Stop the kiosk service so its Chromium instance releases the display:
-   `sudo systemctl stop openroom-kiosk.service`
-3. Start a throwaway Chromium session as the `kiosk` user pointed at Teams, e.g.:
-   `sudo -u kiosk chromium --ozone-platform=wayland https://teams.microsoft.com`
-   (run this from the device's console/tty1, not over SSH, since it needs the display)
-4. Sign in with the room account, start or join a test meeting, and confirm camera and
-   microphone are active with no permission prompt (the managed policy's
-   `VideoCaptureAllowedUrls`/`AudioCaptureAllowedUrls` should pre-grant both).
-5. Close that Chromium instance and restart the kiosk: `sudo systemctl start openroom-kiosk.service`
-
-This manual step will be replaced by the real Join flow once the control service and calendar
-integration land in Milestones 3-4.
+As of Milestone 3, this is done through the control service's own home screen rather than a
+throwaway Chromium session — set `control_demo_join_url` to a real Teams meeting link (see
+`docs/OPERATIONS.md`), tap Join on the kiosk's home screen, and confirm camera and microphone are
+active with no permission prompt (the managed policy's `VideoCaptureAllowedUrls`/
+`AudioCaptureAllowedUrls` pre-grant both). Full calendar-driven join links land in Milestone 4.

@@ -5,7 +5,8 @@
 # watchdog (added in a later milestone) manage it like any other unit.
 [Unit]
 Description=OpenRoom kiosk session
-After=systemd-user-sessions.service getty@tty1.service
+After=systemd-user-sessions.service getty@tty1.service openroom-control.service
+Requires=openroom-control.service
 Conflicts=getty@tty1.service
 
 [Service]
@@ -19,7 +20,7 @@ StandardOutput=journal
 StandardError=journal
 Restart=always
 RestartSec=2
-ExecStart=/usr/bin/cage -- /usr/bin/chromium --kiosk --ozone-platform=wayland --enable-features=UseOzonePlatform --noerrdialogs --disable-infobars --disable-session-crashed-bubble --no-first-run --start-fullscreen --user-data-dir={{ kiosk_home }}/.chromium{% for flag in chromium_extra_flags %} {{ flag }}{% endfor %} {{ kiosk_start_url }}
+ExecStart=/usr/bin/cage -- /usr/bin/chromium --kiosk --ozone-platform=wayland --enable-features=UseOzonePlatform --noerrdialogs --disable-infobars --disable-session-crashed-bubble --no-first-run --start-fullscreen --remote-debugging-port=9222 --remote-debugging-address=127.0.0.1 --user-data-dir={{ kiosk_home }}/.chromium{% for flag in chromium_extra_flags %} {{ flag }}{% endfor %} {{ kiosk_start_url }}
 
 [Install]
 WantedBy=multi-user.target

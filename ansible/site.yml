@@ -1,11 +1,16 @@
 ---
-# OpenRoom device build. Milestones 1-2 roles only — control, hardening,
-# updates and monitoring are added in later milestones.
+# OpenRoom device build. Milestones 1-3 roles only — hardening, updates
+# and monitoring are added in later milestones.
+#
+# control must run before browser: the browser role's managed policy
+# needs the Chromium extension ID the control role computes when it packs
+# the Leave & Home extension.
 - name: Build an OpenRoom kiosk device
   hosts: rooms
   become: true
   roles:
     - base
     - kiosk
+    - control
     - browser
     - av

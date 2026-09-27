@@ -1,0 +1,20 @@
+---
+- name: Reinstall control venv
+  ansible.builtin.pip:
+    requirements: /opt/openroom/control/requirements.txt
+    virtualenv: /opt/openroom/venv
+    virtualenv_command: /usr/bin/python3 -m venv
+    state: forcereinstall
+
+- name: Restart control service
+  ansible.builtin.systemd:
+    name: openroom-control.service
+    state: restarted
+    daemon_reload: true
+
+- name: Repack extension
+  ansible.builtin.command: >
+    chromium --headless --no-sandbox
+    --pack-extension=/opt/openroom/extension/src
+    --pack-extension-key=/opt/openroom/extension/key.pem
+  changed_when: true

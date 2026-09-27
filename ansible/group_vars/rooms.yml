@@ -1,8 +1,7 @@
 ---
 # Defaults shared by all rooms. Override per-device in host_vars/<hostname>.yml.
 
-# Display name for the room; shown on the home screen once the control
-# service exists (Milestone 3+). Not yet used by Milestone 1.
+# Display name for the room; shown on the home screen.
 room_name: "Meeting Room"
 
 # The unprivileged local account that runs the kiosk session.
@@ -10,13 +9,8 @@ kiosk_user: kiosk
 kiosk_group: kiosk
 kiosk_home: /home/kiosk
 
-# Where static assets served to the kiosk browser live on the device.
-openroom_static_dir: /opt/openroom/static
-
-# The page Chromium opens on start. Milestone 1 points this at a local
-# placeholder file; Milestone 3 will change this to the control service
-# once it exists (http://127.0.0.1:8080/).
-kiosk_start_url: "file://{{ openroom_static_dir }}/placeholder.html"
+# The page Chromium opens on start: the control service's home screen.
+kiosk_start_url: "http://127.0.0.1:8080/"
 
 # Extra Chromium command-line flags, appended after the fixed kiosk set
 # in roles/kiosk/templates/openroom-kiosk.service.j2.
@@ -50,3 +44,16 @@ av_camera_format:
 # `v4l2-ctl --device=/dev/openroom-camera --list-ctrls` on the real
 # device and fill these in (see docs/HARDWARE.md).
 av_camera_v4l2_controls: []
+
+# --- Control service (Milestone 3) ---
+# No calendar yet (Milestone 4) — a fixed join URL stands in for a real
+# meeting. Set this per-room in host_vars/<hostname>.yml to a real Teams
+# join link to exercise Join/Leave/Home end-to-end.
+control_demo_join_url: "https://teams.microsoft.com/l/meetup-join/REPLACE_ME"
+
+# Teams' own "join with an ID and passcode" page — see docs/OPERATIONS.md
+# for why this isn't a constructed deep link.
+control_join_by_id_url: "https://teams.microsoft.com/meet"
+
+control_external_base_url: "http://127.0.0.1:8080"
+control_extension_version: "1.0.0"
